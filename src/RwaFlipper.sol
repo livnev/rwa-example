@@ -4,6 +4,9 @@ interface VatLike {
     function flux(bytes32,address,address,uint) external;
 }
 
+interface CatLike {
+    function claw(uint256) external;
+}
 
 contract RwaFlipper {
     // --- auth ---
@@ -16,22 +19,36 @@ contract RwaFlipper {
     }
 
     VatLike public vat;
+    CatLike public cat;
     bytes32 public ilk;
     uint256 public kicks = 0;
 
 
     // --- init ---
-    constructor(address vat_, bytes32 ilk_) public {
+    constructor(address vat_, address cat_, bytes32 ilk_) public {
         vat = VatLike(vat_);
+        cat = CatLike(cat_);
         ilk = ilk_;
         wards[msg.sender] = 1;
     }
 
-    function kick(address usr, address gal, uint tab, uint lot, uint bid) public auth returns (uint id) {
+    function file(bytes32 what, address data) external note auth {
+        if (what == "cat") cat = CatLike(data);
+        else revert("RwaFlipper/file-unrecognized-param");
+    }
+
+    function kick(
+        address usr,
+        address gal,
+        uint tab,
+        uint lot,
+        uint bid
+    ) public auth returns (uint id) {
         require(kicks < uint(-1), "RwaFlipper/overflow");
         id = ++kicks;
 
-        usr; gal; tab; bid;
+        usr; gal; bid;
         vat.flux(ilk, msg.sender, address(this), lot);
+        cat.claw(tab);
     }
 }
