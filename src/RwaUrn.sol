@@ -40,6 +40,12 @@ contract RwaUrn {
         wards[msg.sender] = 1;
     }
 
+    // --- administration ---
+    function file(bytes32 what, address data) external auth {
+        if (what == "fbo") fbo = data;
+        else revert("RwaUrn/unrecognised-param");
+    }
+
     // --- cdp operation ---
     // n.b. DAI can only go to fbo
     function lock(uint256 wad) external operator {
