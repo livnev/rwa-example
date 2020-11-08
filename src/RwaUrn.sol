@@ -57,6 +57,7 @@ contract RwaUrn {
         daiJoin.exit(fbo, wad);
     }
     function wipe(uint256 wad) external operator {
+        daiJoin.join(address(this), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, -int(wad));
     }
 }
