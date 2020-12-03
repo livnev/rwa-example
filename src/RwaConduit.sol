@@ -22,7 +22,7 @@ contract RwaConduit {
     }
 }
 
-contract RwaConduitAdvanced {
+contract RwaRoutingConduit {
     // --- auth ---
     mapping (address => uint) public wards;
     mapping (address => uint) public can;
