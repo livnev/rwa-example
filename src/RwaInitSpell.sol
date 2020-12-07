@@ -15,10 +15,10 @@ contract SpellAction {
     address constant OSM_MOM                = 0x76416A4d5190d071bfed309861527431304aA14f;
     address constant ILK_REGISTRY           = 0x8b4ce5DCbb01e0e1f0521cd8dCfb31B308E52c24;
 
-    address constant SIXSA_GEM              = ???;
-    address constant MCD_JOIN_SIXSA         = ???;
-    address constant MCD_FLIP_SIXSA         = ???;
-    address constant PIP_SIXSA              = ???;
+    address constant SIXSA_GEM              = 0xdEADBEeF00000000000000000000000000000000;
+    address constant MCD_JOIN_SIXSA         = 0xdEADBEeF00000000000000000000000000000000;
+    address constant MCD_FLIP_SIXSA         = 0xdEADBEeF00000000000000000000000000000000;
+    address constant PIP_SIXSA              = 0xdEADBEeF00000000000000000000000000000000;
 
     function execute() external {
 
@@ -90,6 +90,7 @@ contract SpellAction {
         SpotAbstract(MCD_SPOT).poke(ilkSIXSA);
 
         IlkRegistryAbstract(ILK_REGISTRY).add(MCD_JOIN_SIXSA);
+    }
 }
 
 contract DssSpell {

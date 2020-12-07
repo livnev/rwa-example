@@ -9,6 +9,16 @@ contract GemLike {
     function transferFrom(address, address, uint) public returns (bool);
 }
 
+contract JoinLike {
+    function join(address, uint256) public;
+    function exit(address, uint256) public;
+}
+
+contract GemJoinLike is JoinLike {
+    function gem() public returns (address);
+}
+
+
 contract RwaUrn {
     // --- auth ---
     mapping (address => uint) public wards;
@@ -27,8 +37,8 @@ contract RwaUrn {
     }
 
     VatLike  public vat;
-    JoinLike public gemJoin;
     JoinLike public daiJoin;
+    GemJoinLike public gemJoin;
     address  public fbo;
 
     // --- init ---
