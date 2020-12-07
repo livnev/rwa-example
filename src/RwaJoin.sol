@@ -13,7 +13,7 @@ interface AuthGemLike {
     function transferFrom(address,address,uint) external returns (bool);
 }
 
-contract AuthGemJoin is LibNote {
+contract AuthGemJoin {
     VatLike     public vat;
     bytes32     public ilk;
     AuthGemLike public gem;
@@ -22,8 +22,8 @@ contract AuthGemJoin is LibNote {
 
     // --- Auth ---
     mapping (address => uint) public wards;
-    function rely(address usr) public note auth { wards[usr] = 1; }
-    function deny(address usr) public note auth { wards[usr] = 0; }
+    function rely(address usr) public auth { wards[usr] = 1; }
+    function deny(address usr) public auth { wards[usr] = 0; }
     modifier auth { require(wards[msg.sender] == 1, "AuthGemJoin/non-authed"); _; }
 
     constructor(address vat_, bytes32 ilk_, address gem_) public {
@@ -35,18 +35,18 @@ contract AuthGemJoin is LibNote {
         dec = gem.decimals();
     }
 
-    function cage() external note auth {
+    function cage() public auth {
         live = 0;
     }
 
-    function join(address usr, uint wad) public auth note {
+    function join(address usr, uint wad) public auth {
         require(live == 1, "AuthGemJoin/not-live");
         require(int(wad) >= 0, "AuthGemJoin/overflow");
         vat.slip(ilk, usr, int(wad));
         require(gem.transferFrom(msg.sender, address(this), wad), "AuthGemJoin/failed-transfer");
     }
 
-    function exit(address usr, uint wad) public note {
+    function exit(address usr, uint wad) public {
         require(wad <= 2 ** 255, "AuthGemJoin/overflow");
         vat.slip(ilk, msg.sender, -int(wad));
         require(gem.transfer(usr, wad), "AuthGemJoin/failed-transfer");
