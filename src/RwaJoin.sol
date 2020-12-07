@@ -3,6 +3,10 @@ pragma solidity 0.5.12;
 // AuthGemJoin
 // For a token that needs restriction on the sources which are able to execute the join function (like SAI through Migration contract)
 
+interface VatLike {
+    function slip(bytes32,address,int256) external;
+}
+
 interface AuthGemLike {
     function decimals() external view returns (uint);
     function transfer(address,uint) external returns (bool);

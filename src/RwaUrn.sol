@@ -15,7 +15,8 @@ contract JoinLike {
 }
 
 contract GemJoinLike is JoinLike {
-    function gem() public returns (address);
+    function gem() public returns (GemLike);
+    function ilk() public returns (bytes32);
 }
 
 
@@ -44,8 +45,8 @@ contract RwaUrn {
     // --- init ---
     constructor(address vat_, address gemJoin_, address daiJoin_, address fbo_) public {
         vat = VatLike(vat_);
-        gemJoin = JoinLike(gemJoin_);
         daiJoin = JoinLike(daiJoin_);
+        gemJoin = GemJoinLike(gemJoin_);
         fbo = fbo_;
         wards[msg.sender] = 1;
     }
