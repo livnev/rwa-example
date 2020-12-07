@@ -46,6 +46,7 @@ contract AuthGemJoin {
         require(gem.transferFrom(msg.sender, address(this), wad), "AuthGemJoin/failed-transfer");
     }
 
+    // n.b. no auth
     function exit(address usr, uint wad) public {
         require(wad <= 2 ** 255, "AuthGemJoin/overflow");
         vat.slip(ilk, msg.sender, -int(wad));
