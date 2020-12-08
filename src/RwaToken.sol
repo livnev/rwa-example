@@ -32,9 +32,9 @@ contract RwaToken {
     function transferFrom(address src, address dst, uint wad)
         public returns (bool)
     {
-        require(balanceOf[src] >= wad, "Dai/insufficient-balance");
+        require(balanceOf[src] >= wad, "RwaToken/insufficient-balance");
         if (src != msg.sender && allowance[src][msg.sender] != uint(-1)) {
-            require(allowance[src][msg.sender] >= wad, "Dai/insufficient-allowance");
+            require(allowance[src][msg.sender] >= wad, "RwaToken/insufficient-allowance");
             allowance[src][msg.sender] = sub(allowance[src][msg.sender], wad);
         }
         balanceOf[src] = sub(balanceOf[src], wad);

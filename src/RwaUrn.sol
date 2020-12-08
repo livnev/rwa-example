@@ -1,15 +1,13 @@
 pragma solidity 0.5.12;
 
-contract VatLike {
-    function frob(bytes32, address, address, address, int, int) public;
-}
+import "lib/dss-interfaces/src/dss/VatAbstract.sol";
+import "lib/dss-interfaces/src/dapp/DSTokenAbstract.sol";
+import "lib/dss-interfaces/src/dss/GemJoinAbstract.sol";
+import "lib/dss-interfaces/src/dss/DaiJoinAbstract.sol";
 
-contract GemLike {
-    function transfer(address, uint) public returns (bool);
-    function transferFrom(address, address, uint) public returns (bool);
-}
+import "./lib.sol";
 
-contract RwaUrn {
+contract RwaUrn is LibNote {
     // --- auth ---
     mapping (address => uint) public wards;
     mapping (address => uint) public can;
@@ -20,24 +18,27 @@ contract RwaUrn {
         _;
     }
     function hope(address usr) external auth { can[usr] = 1; }
-    function nope(address usr) external auth { can[usr] = 0; }
+   function nope(address usr) external auth { can[usr] = 0; }
     modifier operator {
         require(can[msg.sender] == 1, "RwaUrn/not-operator");
         _;
     }
 
-    VatLike  public vat;
-    JoinLike public gemJoin;
-    JoinLike public daiJoin;
-    address  public fbo;
+    VatAbstract  public vat;
+    DSTokenAbstract public gem;
+    GemJoinAbstract public gemJoin;
+    DaiJoinAbstract public daiJoin;
+    address  public fbo; // routing conduit?
 
     // --- init ---
-    constructor(address vat_, address gemJoin_, address daiJoin_, address fbo_) public {
-        vat = VatLike(vat_);
-        gemJoin = JoinLike(gemJoin_);
-        daiJoin = JoinLike(daiJoin_);
+    constructor(address vat_, address gemJoin_, address daiJoin_, address fbo_, address gem_) public {
+        vat = VatAbstract(vat_);
+        // gem approve in constructor uint(-1)
+        gemJoin = GemJoinAbstract(gemJoin_);
+        daiJoin = DaiJoinAbstract(daiJoin_);
         fbo = fbo_;
         wards[msg.sender] = 1;
+        gem = DSTokenAbstract(gem_);
     }
 
     // --- administration ---
@@ -49,14 +50,15 @@ contract RwaUrn {
     // --- cdp operation ---
     // n.b. DAI can only go to fbo
     function lock(uint256 wad) external operator {
-        gemJoin.gem().transferFrom(msg.sender, address(this), wad);
-        gemJoin.join(address(this), wad);
+        DSTokenAbstract(gemJoin.gem()).transferFrom(msg.sender, address(this), wad);
+        gem.approve(address(gemJoin), wad);
+        gemJoin.join(address(msg.sender), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), int(wad), 0);
     }
     function free(uint256 wad) external operator {
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), -int(wad), 0);
-        gemJoin.exit(address(this), wad);
-        gemJoin.gem().transfer(msg.sender, wad);
+        gemJoin.exit(address(msg.sender), wad);
+        DSTokenAbstract(gemJoin.gem()).transfer(msg.sender, wad);
     }
     function draw(uint256 wad) external operator {
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, int(wad));
