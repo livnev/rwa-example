@@ -4,6 +4,7 @@ import "lib/dss-interfaces/src/dss/VatAbstract.sol";
 import "lib/dss-interfaces/src/dapp/DSTokenAbstract.sol";
 import "lib/dss-interfaces/src/dss/GemJoinAbstract.sol";
 import "lib/dss-interfaces/src/dss/DaiJoinAbstract.sol";
+import "lib/dss-interfaces/src/dss/DaiAbstract.sol";
 
 import "./lib.sol";
 
@@ -18,7 +19,7 @@ contract RwaUrn is LibNote {
         _;
     }
     function hope(address usr) external auth { can[usr] = 1; }
-   function nope(address usr) external auth { can[usr] = 0; }
+    function nope(address usr) external auth { can[usr] = 0; }
     modifier operator {
         require(can[msg.sender] == 1, "RwaUrn/not-operator");
         _;
@@ -32,17 +33,20 @@ contract RwaUrn is LibNote {
 
     // --- init ---
     constructor(address vat_, address gemJoin_, address daiJoin_, address fbo_, address gem_) public {
+        // requires in urn that fbo isn't address(0)
         vat = VatAbstract(vat_);
-        // gem approve in constructor uint(-1)
         gemJoin = GemJoinAbstract(gemJoin_);
         daiJoin = DaiJoinAbstract(daiJoin_);
         fbo = fbo_;
         wards[msg.sender] = 1;
         gem = DSTokenAbstract(gem_);
+        gem.approve(address(gemJoin), uint(-1));
+        DaiAbstract(daiJoin.dai()).approve(address(daiJoin), uint(-1));
     }
 
     // --- administration ---
     function file(bytes32 what, address data) external auth {
+        // add require statement ensuring address != 0
         if (what == "fbo") fbo = data;
         else revert("RwaUrn/unrecognised-param");
     }
@@ -51,7 +55,6 @@ contract RwaUrn is LibNote {
     // n.b. DAI can only go to fbo
     function lock(uint256 wad) external operator {
         DSTokenAbstract(gemJoin.gem()).transferFrom(msg.sender, address(this), wad);
-        gem.approve(address(gemJoin), wad);
         gemJoin.join(address(msg.sender), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), int(wad), 0);
     }
