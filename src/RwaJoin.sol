@@ -3,9 +3,9 @@ pragma solidity 0.5.12;
 // AuthGemJoin
 // For a token that needs restriction on the sources which are able to execute the join function (like SAI through Migration contract)
 
-interface VatLike {
-    function slip(bytes32,address,int256) external;
-}
+import "lib/dss-interfaces/src/dss/VatAbstract.sol";
+
+import "./lib.sol";
 
 interface AuthGemLike {
     function decimals() external view returns (uint);
@@ -13,8 +13,8 @@ interface AuthGemLike {
     function transferFrom(address,address,uint) external returns (bool);
 }
 
-contract AuthGemJoin {
-    VatLike     public vat;
+contract AuthGemJoin is LibNote {
+    VatAbstract public vat;
     bytes32     public ilk;
     AuthGemLike public gem;
     uint        public dec;
@@ -29,7 +29,7 @@ contract AuthGemJoin {
     constructor(address vat_, bytes32 ilk_, address gem_) public {
         wards[msg.sender] = 1;
         live = 1;
-        vat = VatLike(vat_);
+        vat = VatAbstract(vat_);
         ilk = ilk_;
         gem = AuthGemLike(gem_);
         dec = gem.decimals();
