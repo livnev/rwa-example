@@ -26,21 +26,19 @@ contract RwaUrn is LibNote {
     }
 
     VatAbstract  public vat;
-    DSTokenAbstract public gem;
     GemJoinAbstract public gemJoin;
     DaiJoinAbstract public daiJoin;
     address  public fbo; // routing conduit?
 
     // --- init ---
-    constructor(address vat_, address gemJoin_, address daiJoin_, address fbo_, address gem_) public {
+    constructor(address vat_, address gemJoin_, address daiJoin_, address fbo_) public {
         // requires in urn that fbo isn't address(0)
         vat = VatAbstract(vat_);
         gemJoin = GemJoinAbstract(gemJoin_);
         daiJoin = DaiJoinAbstract(daiJoin_);
         fbo = fbo_;
         wards[msg.sender] = 1;
-        gem = DSTokenAbstract(gem_);
-        gem.approve(address(gemJoin), uint(-1));
+        DSTokenAbstract(gemJoin.gem()).approve(address(gemJoin), uint(-1));
         DaiAbstract(daiJoin.dai()).approve(address(daiJoin), uint(-1));
     }
 

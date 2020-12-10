@@ -341,7 +341,7 @@ contract DssSpellTest is DSTest, DSMath {
     address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
     address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
     address constant PIP             = 0x0318D82C3b2a23d993dcE881aada122f311ca901;
-    address constant RWA_URN         = 0xFBbedE2477ddA0262fB3982668aD775db88546b2;
+    address constant RWA_URN         = 0x54E0C515c0E804Ffea62559eFdDDe8CB03188044;
 
     DSTokenAbstract constant rwagem     = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin    = GemJoinAbstract(MCD_JOIN_RWA001);
@@ -868,16 +868,13 @@ contract DssSpellTest is DSTest, DSMath {
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
+        // fix this
         hevm.store(
             address(rwagem),
-            keccak256(abi.encode(address(this), uint256(1))),
+            keccak256(abi.encode(address(this), uint256(4))),
             bytes32(uint256(1 ether))
         );
-        hevm.store(
-            address(rwagem),
-            keccak256(abi.encode(address(this), uint256(0))),
-            bytes32(uint256(2 ether))
-        );
+        // setting address(this) as operator
         hevm.store(
             address(rwaurn),
             keccak256(abi.encode(address(this), uint256(1))),
@@ -887,7 +884,7 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(rwagem.totalSupply(), 2 * WAD);
         assertEq(rwaurn.can(address(this)), 1);
 
-        rwagem.approve(address(rwajoin), 1 * WAD);
+        rwagem.approve(address(rwaurn), 1 * WAD);
         rwaurn.lock(1 * WAD);
         // rwaurn.draw(1 ether);
         // rwaurn.wipe(1 ether);

@@ -23,6 +23,7 @@ contract RwaToken {
 
     constructor() public {
         balanceOf[msg.sender] = 1 ether;
+        totalSupply = 1 ether;
     }
 
     // --- Token ---
