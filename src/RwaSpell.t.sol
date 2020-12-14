@@ -14,6 +14,20 @@ interface Hevm {
 
 pragma solidity >=0.5.12;
 
+interface RwaRoutingLike {
+    function wards(address) external returns (uint);
+    function can(address) external returns (uint);
+    function rely(address) external;
+    function deny(address) external;
+    function hope(address) external;
+    function nope(address) external;
+    function bud(address) external returns (uint);
+    function kiss(address) external;
+    function diss(address) external;
+    function pick(address) external;
+    function push() external;
+}
+
 // https://github.com/dapphub/ds-chief
 interface DSChief2 {
     function live() external view returns (uint256);
@@ -55,6 +69,47 @@ interface RwaLiquidationLike {
     function cull(bytes32) external;
     function good(bytes32) external view returns (bool);
 }
+
+// contract ConduitSpellAction {
+//     RwaRoutingLike routing = RwaRoutingLike(0x0cf836924fd65af0de42294c8e9faccc19a384dc);
+// 
+//     function execute() public {
+// 
+//     }
+// }
+// 
+// contract ConduitSpell {
+//     ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+//     DSPauseAbstract public pause =
+//         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
+//     address         public action;
+//     bytes32         public tag;
+//     uint256         public eta;
+//     bytes           public sig;
+//     uint256         public expiration;
+//     bool            public done;
+// 
+//     constructor() public {
+//         sig = abi.encodeWithSignature("execute()");
+//         action = address(new ConduitSpellAction());
+//         bytes32 _tag;
+//         address _action = action;
+//         assembly { _tag := extcodehash(_action) }
+//         tag = _tag;
+//     }
+// 
+//     function schedule() public {
+//         require(eta == 0, "This spell has already been scheduled");
+//         eta = now + DSPauseAbstract(pause).delay();
+//         pause.plot(action, tag, sig, eta);
+//     }
+// 
+//     function cast() public {
+//         require(!done, "spell-already-cast");
+//         done = true;
+//         pause.exec(action, tag, sig, eta);
+//     }
+// }
 
 contract EndSpellAction {
     EndAbstract constant end = EndAbstract(0x24728AcF2E2C403F5d2db4Df6834B8998e56aA5F);
@@ -98,7 +153,7 @@ contract EndSpell {
 }
 
 contract OperatorSpellAction {
-    RwaUrnLike constant rwaurn = RwaUrnLike(0x0aB030EF81948dFc40aA6001625801921609D7c6);
+    RwaUrnLike constant rwaurn = RwaUrnLike(0xF37a3a908c48d8DF2E25577062244f607dcE7d41);
     bytes32 constant ilk = "RWA-001";
     address test;
 
@@ -336,20 +391,22 @@ contract DssSpellTest is DSTest, DSMath {
 
     ChainlogAbstract chainlog  = ChainlogAbstract(   0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
-    address constant RWA001_GEM      = 0xF1c74E2970E86cEC267b1714b2919f8A105Fb526;
-    address constant MCD_JOIN_RWA001 = 0x0963237D0CBa02D9ee64f2a2f777f2eAeB7C3819;
+    address constant RWA001_GEM      = 0xE255c837f9363213dFD716C8Ed874A8B33e6a553;
+    address constant MCD_JOIN_RWA001 = 0x70efd9582843043d5055e558532F700e29B4Ff1a;
     address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
     address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
     address constant PIP             = 0x0318D82C3b2a23d993dcE881aada122f311ca901;
-    address constant RWA_URN         = 0x54E0C515c0E804Ffea62559eFdDDe8CB03188044;
+    address constant RWA_URN         = 0x1a82C15CE47F4928351FC866EA616335871F9CAe;
+    address constant RWA_ROUTING     = 0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc;
 
     DSTokenAbstract constant rwagem     = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin    = GemJoinAbstract(MCD_JOIN_RWA001);
     FlipAbstract constant rwaflip       = FlipAbstract(MCD_FLIP_RWA001);
     RwaLiquidationLike constant rwapip  = RwaLiquidationLike(PIP_RWA001);
     RwaUrnLike constant rwaurn          = RwaUrnLike(RWA_URN);
+    RwaRoutingLike constant rwarouting  = RwaRoutingLike(RWA_ROUTING);
 
-    address    makerDeployer06 =                     0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
+    address    makerDeployer06          = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
     // rwa specific
 
@@ -871,7 +928,13 @@ contract DssSpellTest is DSTest, DSMath {
         // fix this
         hevm.store(
             address(rwagem),
-            keccak256(abi.encode(address(this), uint256(4))),
+            keccak256(abi.encode(address(this), uint256(0))),
+            bytes32(uint256(2 ether))
+        );
+        // fix this
+        hevm.store(
+            address(rwagem),
+            keccak256(abi.encode(address(this), uint256(1))),
             bytes32(uint256(1 ether))
         );
         // setting address(this) as operator
@@ -880,8 +943,8 @@ contract DssSpellTest is DSTest, DSMath {
             keccak256(abi.encode(address(this), uint256(1))),
             bytes32(uint256(1))
         );
+        assertEq(rwagem.totalSupply(), 1 * WAD);
         assertEq(rwagem.balanceOf(address(this)), 1 * WAD);
-        assertEq(rwagem.totalSupply(), 2 * WAD);
         assertEq(rwaurn.can(address(this)), 1);
 
         rwagem.approve(address(rwaurn), 1 * WAD);
@@ -907,6 +970,35 @@ contract DssSpellTest is DSTest, DSMath {
 
         // TODO: finish
     }
+
+    // function testSpellIsCast_ROUTING_CONDUIT() public {
+    //     vote();
+    //     scheduleWaitAndCast();
+    //     assertTrue(spell.done());
+
+    //     // fix this
+    //     hevm.store(
+    //         address(rwarouting),
+    //         keccak256(abi.encode(address(a), uint256(4))),
+    //         uint256(1)
+    //     );
+    //     hevm.store(
+    //         address(rwarouting),
+    //         keccak256(abi.encode(address(b), uint256(4))),
+    //         uint256(1)
+    //     );
+    //     hevm.store(
+    //         address(rwarouting),
+    //         keccak256(abi.encode(address(c), uint256(4))),
+    //         uint256(1)
+    //     );
+    //     hevm.store(
+    //         address(rwaurn),
+    //         keccak256(abi.encode(address(this), uint256(1))),
+    //         bytes32(uint256(1))
+    //     );
+
+    // }
 
     // test end in 2 scenarios (if we need yank in flip contract?) think thru if we need yank in the clip?
 
