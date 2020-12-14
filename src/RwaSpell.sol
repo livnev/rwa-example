@@ -60,12 +60,12 @@ contract SpellAction {
     address constant MCD_END         = 0x24728AcF2E2C403F5d2db4Df6834B8998e56aA5F;
     address constant ILK_REGISTRY    = 0xedE45A0522CA19e979e217064629778d6Cc2d9Ea;
 
-    address constant RWA001_GEM      = 0xF1c74E2970E86cEC267b1714b2919f8A105Fb526;
-    address constant MCD_JOIN_RWA001 = 0x0963237D0CBa02D9ee64f2a2f777f2eAeB7C3819;
+    address constant RWA001_GEM      = 0xE255c837f9363213dFD716C8Ed874A8B33e6a553;
+    address constant MCD_JOIN_RWA001 = 0x70efd9582843043d5055e558532F700e29B4Ff1a;
     address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
     address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
-    address constant RWA_URN         = 0x54E0C515c0E804Ffea62559eFdDDe8CB03188044;
-    address constant RWA_CONDUIT     = 0x2E465712F32ad33B4e2E78A4Aa658AB681e99338;
+    address constant RWA_URN         = 0x1a82C15CE47F4928351FC866EA616335871F9CAe;
+    address constant RWA_CONDUIT     = 0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc;
 
     // this is set to 10million right now
     address constant PIP             = 0x0318D82C3b2a23d993dcE881aada122f311ca901;
