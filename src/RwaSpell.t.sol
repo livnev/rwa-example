@@ -70,46 +70,46 @@ interface RwaLiquidationLike {
     function good(bytes32) external view returns (bool);
 }
 
-// contract ConduitSpellAction {
-//     RwaRoutingLike routing = RwaRoutingLike(0x0cf836924fd65af0de42294c8e9faccc19a384dc);
-// 
-//     function execute() public {
-// 
-//     }
-// }
-// 
-// contract ConduitSpell {
-//     ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-//     DSPauseAbstract public pause =
-//         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-//     address         public action;
-//     bytes32         public tag;
-//     uint256         public eta;
-//     bytes           public sig;
-//     uint256         public expiration;
-//     bool            public done;
-// 
-//     constructor() public {
-//         sig = abi.encodeWithSignature("execute()");
-//         action = address(new ConduitSpellAction());
-//         bytes32 _tag;
-//         address _action = action;
-//         assembly { _tag := extcodehash(_action) }
-//         tag = _tag;
-//     }
-// 
-//     function schedule() public {
-//         require(eta == 0, "This spell has already been scheduled");
-//         eta = now + DSPauseAbstract(pause).delay();
-//         pause.plot(action, tag, sig, eta);
-//     }
-// 
-//     function cast() public {
-//         require(!done, "spell-already-cast");
-//         done = true;
-//         pause.exec(action, tag, sig, eta);
-//     }
-// }
+contract ConduitSpellAction {
+    RwaRoutingLike routing = RwaRoutingLike(0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc);
+
+    function execute() public {
+        routing.kiss(address(1));
+    }
+}
+
+contract ConduitSpell {
+    ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    DSPauseAbstract public pause =
+        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
+    address         public action;
+    bytes32         public tag;
+    uint256         public eta;
+    bytes           public sig;
+    uint256         public expiration;
+    bool            public done;
+
+    constructor() public {
+        sig = abi.encodeWithSignature("execute()");
+        action = address(new ConduitSpellAction());
+        bytes32 _tag;
+        address _action = action;
+        assembly { _tag := extcodehash(_action) }
+        tag = _tag;
+    }
+
+    function schedule() public {
+        require(eta == 0, "This spell has already been scheduled");
+        eta = now + DSPauseAbstract(pause).delay();
+        pause.plot(action, tag, sig, eta);
+    }
+
+    function cast() public {
+        require(!done, "spell-already-cast");
+        done = true;
+        pause.exec(action, tag, sig, eta);
+    }
+}
 
 contract EndSpellAction {
     EndAbstract constant end = EndAbstract(0x24728AcF2E2C403F5d2db4Df6834B8998e56aA5F);
@@ -153,7 +153,7 @@ contract EndSpell {
 }
 
 contract OperatorSpellAction {
-    RwaUrnLike constant rwaurn = RwaUrnLike(0x033D8796A7B11a4C126235acc47a53082715fD01);
+    RwaUrnLike constant rwaurn = RwaUrnLike(0xC6172B516f265dF53123F052FAAEB2AD63e49df7);
     bytes32 constant ilk = "RWA-001";
     address test;
 
@@ -389,6 +389,8 @@ contract DssSpellTest is DSTest, DSMath {
     OsmMomAbstract      osmMom = OsmMomAbstract(     0x5dA9D1C3d4f1197E5c52Ff963916Fe84D2F5d8f3);
     FlipperMomAbstract flipMom = FlipperMomAbstract( 0x50dC6120c67E456AdA2059cfADFF0601499cf681);
 
+    DSTokenAbstract        dai = DSTokenAbstract(    0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+
     ChainlogAbstract chainlog  = ChainlogAbstract(   0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
     address constant RWA001_GEM      = 0xE255c837f9363213dFD716C8Ed874A8B33e6a553;
@@ -396,8 +398,9 @@ contract DssSpellTest is DSTest, DSMath {
     address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
     address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
     address constant PIP             = 0x0318D82C3b2a23d993dcE881aada122f311ca901;
-    address constant RWA_URN         = 0x033D8796A7B11a4C126235acc47a53082715fD01;
+    address constant RWA_URN         = 0xC6172B516f265dF53123F052FAAEB2AD63e49df7;
     address constant RWA_ROUTING     = 0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc;
+    address constant RWA_CONDUIT     = 0x90602c11FF17736964c1C0a5a4E9dc4c3C1D7aeA;
 
     DSTokenAbstract constant rwagem     = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin    = GemJoinAbstract(MCD_JOIN_RWA001);
@@ -405,6 +408,7 @@ contract DssSpellTest is DSTest, DSMath {
     RwaLiquidationLike constant rwapip  = RwaLiquidationLike(PIP_RWA001);
     RwaUrnLike constant rwaurn          = RwaUrnLike(RWA_URN);
     RwaRoutingLike constant rwarouting  = RwaRoutingLike(RWA_ROUTING);
+    RwaRoutingLike constant rwaconduit  = RwaRoutingLike(RWA_CONDUIT);
 
     address    makerDeployer06          = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
@@ -438,6 +442,7 @@ contract DssSpellTest is DSTest, DSMath {
     CullSpell cullSpell;
     OperatorSpell operatorSpell;
     EndSpell endSpell;
+    ConduitSpell conduitSpell;
 
     // CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
     bytes20 constant CHEAT_CODE =
@@ -920,18 +925,16 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(DSValueAbstract(PIP).read(), bytes32(0));
     }
 
-    function testSpellIsCast_RWA001_OPERATOR_LOCK_FREE_DRAW_WIPE() public {
+    function testSpellIsCast_RWA001_OPERATOR_LOCK_DRAW_CONDUITS_WIPE_FREE() public {
         vote();
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
-        // fix this
         hevm.store(
             address(rwagem),
             keccak256(abi.encode(address(this), uint256(0))),
             bytes32(uint256(2 ether))
         );
-        // fix this
         hevm.store(
             address(rwagem),
             keccak256(abi.encode(address(this), uint256(1))),
@@ -950,8 +953,37 @@ contract DssSpellTest is DSTest, DSMath {
         rwagem.approve(address(rwaurn), 1 * WAD);
         rwaurn.lock(1 * WAD);
         rwaurn.draw(1 * WAD);
-        // rwaurn.wipe(1 ether);
-        // rwaurn.free(1 ether);
+
+        assertEq(dai.balanceOf(address(rwarouting)), 1 * WAD);
+
+        // wards
+        hevm.store(
+            address(rwarouting),
+            keccak256(abi.encode(address(this), uint256(0))),
+            bytes32(uint256(1))
+        );
+
+        // can
+        hevm.store(
+            address(rwarouting),
+            keccak256(abi.encode(address(this), uint256(1))),
+            bytes32(uint256(1))
+        );
+
+        assertEq(dai.balanceOf(address(rwarouting)), 1 * WAD);
+
+        rwarouting.kiss(address(this));
+        rwarouting.pick(address(this));
+
+        rwarouting.push();
+
+        assertEq(dai.balanceOf(address(this)), 1 * WAD);
+
+        dai.transfer(address(rwaconduit), dai.balanceOf(address(this)));
+        rwaconduit.push();
+
+        rwaurn.wipe(1 * WAD);
+        rwaurn.free(1 * WAD);
     }
 
     function testSpellIsCast_RWA001_END() public {

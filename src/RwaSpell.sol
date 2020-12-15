@@ -64,7 +64,7 @@ contract SpellAction {
     address constant MCD_JOIN_RWA001 = 0x70efd9582843043d5055e558532F700e29B4Ff1a;
     address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
     address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
-    address constant RWA_URN         = 0x033D8796A7B11a4C126235acc47a53082715fD01;
+    address constant RWA_URN         = 0xC6172B516f265dF53123F052FAAEB2AD63e49df7;
     address constant RWA_CONDUIT     = 0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc;
 
     // this is set to 10million right now
