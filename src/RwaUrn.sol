@@ -53,12 +53,13 @@ contract RwaUrn is LibNote {
     // n.b. DAI can only go to fbo
     function lock(uint256 wad) external operator {
         DSTokenAbstract(gemJoin.gem()).transferFrom(msg.sender, address(this), wad);
-        gemJoin.join(address(msg.sender), wad);
+        // join with address this
+        gemJoin.join(address(this), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), int(wad), 0);
     }
     function free(uint256 wad) external operator {
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), -int(wad), 0);
-        gemJoin.exit(address(msg.sender), wad);
+        gemJoin.exit(address(this), wad);
         DSTokenAbstract(gemJoin.gem()).transfer(msg.sender, wad);
     }
     function draw(uint256 wad) external operator {

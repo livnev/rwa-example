@@ -153,7 +153,7 @@ contract EndSpell {
 }
 
 contract OperatorSpellAction {
-    RwaUrnLike constant rwaurn = RwaUrnLike(0xF37a3a908c48d8DF2E25577062244f607dcE7d41);
+    RwaUrnLike constant rwaurn = RwaUrnLike(0x033D8796A7B11a4C126235acc47a53082715fD01);
     bytes32 constant ilk = "RWA-001";
     address test;
 
@@ -396,7 +396,7 @@ contract DssSpellTest is DSTest, DSMath {
     address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
     address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
     address constant PIP             = 0x0318D82C3b2a23d993dcE881aada122f311ca901;
-    address constant RWA_URN         = 0x1a82C15CE47F4928351FC866EA616335871F9CAe;
+    address constant RWA_URN         = 0x033D8796A7B11a4C126235acc47a53082715fD01;
     address constant RWA_ROUTING     = 0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc;
 
     DSTokenAbstract constant rwagem     = DSTokenAbstract(RWA001_GEM);
@@ -949,7 +949,7 @@ contract DssSpellTest is DSTest, DSMath {
 
         rwagem.approve(address(rwaurn), 1 * WAD);
         rwaurn.lock(1 * WAD);
-        // rwaurn.draw(1 ether);
+        rwaurn.draw(1 * WAD);
         // rwaurn.wipe(1 ether);
         // rwaurn.free(1 ether);
     }

@@ -64,7 +64,7 @@ contract SpellAction {
     address constant MCD_JOIN_RWA001 = 0x70efd9582843043d5055e558532F700e29B4Ff1a;
     address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
     address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
-    address constant RWA_URN         = 0x1a82C15CE47F4928351FC866EA616335871F9CAe;
+    address constant RWA_URN         = 0x033D8796A7B11a4C126235acc47a53082715fD01;
     address constant RWA_CONDUIT     = 0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc;
 
     // this is set to 10million right now
@@ -108,7 +108,7 @@ contract SpellAction {
         require(FlipAbstract(MCD_FLIP_RWA001).ilk()    == ilk, "flip-ilk-not-match");
 
         // Set price feed for RWA001
-        SpotAbstract(MCD_SPOT).file(ilk, "pip", PIP_RWA001);
+        SpotAbstract(MCD_SPOT).file(ilk, "pip", PIP);
 
         // // // Set the RWA-001 flipper in the cat
         CatAbstract(MCD_CAT).file(ilk, "flip", MCD_FLIP_RWA001);
@@ -134,7 +134,7 @@ contract SpellAction {
         // since we're adding 2 collateral types in this spell, global line is at beginning
         // TODO Line
         VatAbstract(MCD_VAT).file( ilk, "line", 10 * MILLION * RAD   ); // 10m debt ceiling
-        VatAbstract(MCD_VAT).file( ilk, "dust", 100 * RAD            ); // 100 Dai dust
+        // VatAbstract(MCD_VAT).file( ilk, "dust", 100 * RAD            ); // 100 Dai dust
         CatAbstract(MCD_CAT).file( ilk, "dunk", 50 * THOUSAND * RAD  ); // 50,000 dunk
         CatAbstract(MCD_CAT).file( ilk, "chop", 100 * WAD / 100      ); // 0% liq. penalty
         JugAbstract(MCD_JUG).file( ilk, "duty", SIX_PCT_RATE         ); // 6% stability fee TODO ask matt
@@ -145,10 +145,10 @@ contract SpellAction {
         // FlipAbstract(MCD_FLIP_RWA001).file(  "tau" , 6 hours              ); // 6 hours tau
 
         // // note: collateralization ratio ??
-        // SpotAbstract(MCD_SPOT).file(ilk, "mat",  100 * RAY / 100     ); // 150% coll. ratio
 
-        // note: no poke
-        // SpotAbstract(MCD_SPOT).poke(ilk);
+        SpotAbstract(MCD_SPOT).file(ilk, "mat",  100 * RAY / 100     ); // 150% coll. ratio
+
+        SpotAbstract(MCD_SPOT).poke(ilk);
 
         // DOC hash?
         bytes32 doc = "doc";
