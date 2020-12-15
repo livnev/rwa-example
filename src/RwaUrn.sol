@@ -40,6 +40,7 @@ contract RwaUrn is LibNote {
         wards[msg.sender] = 1;
         DSTokenAbstract(gemJoin.gem()).approve(address(gemJoin), uint(-1));
         DaiAbstract(daiJoin.dai()).approve(address(daiJoin), uint(-1));
+        VatAbstract(vat_).hope(address(daiJoin));
     }
 
     // --- administration ---
@@ -52,7 +53,7 @@ contract RwaUrn is LibNote {
     // --- cdp operation ---
     // n.b. DAI can only go to fbo
     function lock(uint256 wad) external operator {
-        DSTokenAbstract(gemJoin.gem()).transferFrom(msg.sender, address(this), wad);
+        DSTokenAbstract(gemJoin.gem()).transferFrom(address(msg.sender), address(this), wad);
         // join with address this
         gemJoin.join(address(this), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), int(wad), 0);
@@ -60,11 +61,11 @@ contract RwaUrn is LibNote {
     function free(uint256 wad) external operator {
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), -int(wad), 0);
         gemJoin.exit(address(this), wad);
-        DSTokenAbstract(gemJoin.gem()).transfer(msg.sender, wad);
+        DSTokenAbstract(gemJoin.gem()).transfer(address(msg.sender), wad);
     }
     function draw(uint256 wad) external operator {
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, int(wad));
-        daiJoin.exit(fbo, wad);
+        daiJoin.exit(address(fbo), wad);
     }
     function wipe(uint256 wad) external operator {
         daiJoin.join(address(this), wad);
