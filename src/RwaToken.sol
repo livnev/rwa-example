@@ -2,22 +2,22 @@ pragma solidity 0.5.12;
 
 contract RwaToken {
     // --- ERC20 Data ---
-    string  public constant name     = "RWA Example Token";
+    string  public constant name     = "MIP21 RWA-001";
     string  public constant symbol   = "RWA001";
     uint8   public constant decimals = 18;
     uint256 public totalSupply;
 
-    mapping (address => uint)                      public balanceOf;
-    mapping (address => mapping (address => uint)) public allowance;
+    mapping (address => uint256)                      public balanceOf;
+    mapping (address => mapping (address => uint256)) public allowance;
 
-    event Approval(address indexed src, address indexed guy, uint wad);
-    event Transfer(address indexed src, address indexed dst, uint wad);
+    event Approval(address indexed src, address indexed guy, uint256 wad);
+    event Transfer(address indexed src, address indexed dst, uint256 wad);
 
     // --- Math ---
-    function add(uint x, uint y) internal pure returns (uint z) {
+    function add(uint256 x, uint256 y) internal pure returns (uint256 z) {
         require((z = x + y) >= x);
     }
-    function sub(uint x, uint y) internal pure returns (uint z) {
+    function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {
         require((z = x - y) <= x);
     }
 
@@ -27,14 +27,14 @@ contract RwaToken {
     }
 
     // --- Token ---
-    function transfer(address dst, uint wad) external returns (bool) {
+    function transfer(address dst, uint256 wad) external returns (bool) {
         return transferFrom(msg.sender, dst, wad);
     }
-    function transferFrom(address src, address dst, uint wad)
+    function transferFrom(address src, address dst, uint256 wad)
         public returns (bool)
     {
         require(balanceOf[src] >= wad, "RwaToken/insufficient-balance");
-        if (src != msg.sender && allowance[src][msg.sender] != uint(-1)) {
+        if (src != msg.sender && allowance[src][msg.sender] != uint256(-1)) {
             require(allowance[src][msg.sender] >= wad, "RwaToken/insufficient-allowance");
             allowance[src][msg.sender] = sub(allowance[src][msg.sender], wad);
         }
@@ -43,7 +43,7 @@ contract RwaToken {
         emit Transfer(src, dst, wad);
         return true;
     }
-    function approve(address usr, uint wad) external returns (bool) {
+    function approve(address usr, uint256 wad) external returns (bool) {
         allowance[msg.sender][usr] = wad;
         emit Approval(msg.sender, usr, wad);
         return true;

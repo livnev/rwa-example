@@ -12,6 +12,7 @@ RWA_TOKEN=$(dapp create RwaToken)
 
 # route it
 RWA_ROUTING_CONDUIT=$(dapp create RwaRoutingConduit ${MCD_GOV} ${MCD_DAI})
+# TODO add hope() calls for trust
 # TODO add kiss() calls for trust
 seth send ${RWA_ROUTING_CONDUIT} 'rely(address)' ${MCD_PAUSE_PROXY}
 seth send ${RWA_ROUTING_CONDUIT} 'deny(address)' ${ETH_FROM}

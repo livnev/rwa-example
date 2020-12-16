@@ -28,23 +28,6 @@ interface RwaRoutingLike {
     function push() external;
 }
 
-// https://github.com/dapphub/ds-chief
-interface DSChief2 {
-    function live() external view returns (uint256);
-    function launch() external;
-    function slates(bytes32) external view returns (address[] memory);
-    function votes(address) external view returns (bytes32);
-    function approvals(address) external view returns (uint256);
-    function deposits(address) external view returns (address);
-    function hat() external view returns (address);
-    function lock(uint256) external;
-    function free(uint256) external;
-    function etch(address[] calldata) external returns (bytes32);
-    function vote(address[] calldata) external returns (bytes32);
-    function vote(bytes32) external;
-    function lift(address) external;
-}
-
 interface RwaUrnLike {
     function can(address) external returns (uint);
     function rely(address) external;
@@ -71,7 +54,8 @@ interface RwaLiquidationLike {
 }
 
 contract ConduitSpellAction {
-    RwaRoutingLike routing = RwaRoutingLike(0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc);
+    RwaRoutingLike routing =
+        RwaRoutingLike(0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc);
 
     function execute() public {
         routing.kiss(address(1));
@@ -79,7 +63,8 @@ contract ConduitSpellAction {
 }
 
 contract ConduitSpell {
-    ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
     address         public action;
@@ -112,7 +97,8 @@ contract ConduitSpell {
 }
 
 contract EndSpellAction {
-    EndAbstract constant end = EndAbstract(0x24728AcF2E2C403F5d2db4Df6834B8998e56aA5F);
+    EndAbstract constant end =
+        EndAbstract(0x24728AcF2E2C403F5d2db4Df6834B8998e56aA5F);
 
     function execute() public {
         end.cage();
@@ -120,7 +106,8 @@ contract EndSpellAction {
 }
 
 contract EndSpell {
-    ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
     address         public action;
@@ -153,7 +140,8 @@ contract EndSpell {
 }
 
 contract OperatorSpellAction {
-    RwaUrnLike constant rwaurn = RwaUrnLike(0xC6172B516f265dF53123F052FAAEB2AD63e49df7);
+    RwaUrnLike constant rwaurn =
+        RwaUrnLike(0xC6172B516f265dF53123F052FAAEB2AD63e49df7);
     bytes32 constant ilk = "RWA-001";
     address test;
 
@@ -167,7 +155,8 @@ contract OperatorSpellAction {
 }
 
 contract OperatorSpell {
-    ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
     address         public action;
@@ -200,7 +189,8 @@ contract OperatorSpell {
 }
 
 contract CullSpellAction {
-    RwaLiquidationLike constant rwapip  = RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
+    RwaLiquidationLike constant rwapip =
+        RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
     bytes32 constant ilk = "RWA-001";
 
     function execute() public {
@@ -209,7 +199,8 @@ contract CullSpellAction {
 }
 
 contract CullSpell {
-    ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
     address         public action;
@@ -242,7 +233,8 @@ contract CullSpell {
 }
 
 contract CureSpellAction {
-    RwaLiquidationLike constant rwapip  = RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
+    RwaLiquidationLike constant rwapip =
+        RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
     bytes32 constant ilk = "RWA-001";
 
     function execute() public {
@@ -251,7 +243,8 @@ contract CureSpellAction {
 }
 
 contract CureSpell {
-    ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
     address         public action;
@@ -284,7 +277,8 @@ contract CureSpell {
 }
 
 contract TellSpellAction {
-    RwaLiquidationLike constant rwapip  = RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
+    RwaLiquidationLike constant rwapip =
+        RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
     bytes32 constant ilk = "RWA-001";
 
     function execute() public {
@@ -293,7 +287,8 @@ contract TellSpellAction {
 }
 
 contract TellSpell {
-    ChainlogAbstract constant CHANGELOG = ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
         DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
     address         public action;
@@ -369,7 +364,7 @@ contract DssSpellTest is DSTest, DSMath {
     DSPauseAbstract      pause = DSPauseAbstract(    0x8754E6ecb4fe68DaA5132c2886aB39297a5c7189);
     address         pauseProxy =                     0x0e4725db88Bb038bBa4C4723e91Ba183BE11eDf3;
 
-    DSChief2             chief = DSChief2(           0x27E0c9567729Ea6e3241DE74B3dE499b7ddd3fe6);
+    DSChiefAbstract      chief = DSChiefAbstract(    0x27E0c9567729Ea6e3241DE74B3dE499b7ddd3fe6);
     VatAbstract            vat = VatAbstract(        0xbA987bDB501d131f766fEe8180Da5d81b34b69d9);
 
     CatAbstract            cat = CatAbstract(        0xdDb5F7A3A5558b9a6a1f3382BD75E2268d1c6958);
@@ -410,30 +405,6 @@ contract DssSpellTest is DSTest, DSMath {
 
     address    makerDeployer06          = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
-    // rwa specific
-
-    // // MAINNET ADDRESSES
-    // DSPauseAbstract      pause = DSPauseAbstract(    0xbE286431454714F511008713973d3B053A2d38f3);
-    // address         pauseProxy =                     0xBE8E3e3618f7474F8cB1d074A26afFef007E98FB;
-    // DSChief2 chief = DSChief2(    0x9eF05f7F6deB616fd37aC3c959a2dDD25A54E4F5);
-    // VatAbstract            vat = VatAbstract(        0x35D1b3F3D7966A1DFe207aa4514C12a259A0492B);
-    // CatAbstract            cat = CatAbstract(        0xa5679C04fc3d9d8b0AaB1F0ab83555b301cA70Ea);
-    // JugAbstract            jug = JugAbstract(        0x19c0976f590D67707E62397C87829d896Dc0f1F1);
-    // VowAbstract            vow = VowAbstract(        0xA950524441892A31ebddF91d3cEEFa04Bf454466);
-
-    // PotAbstract            pot = PotAbstract(        0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7);
-
-    // SpotAbstract          spot = SpotAbstract(       0x65C79fcB50Ca1594B025960e539eD7A9a6D434A3);
-
-    // DSTokenAbstract        gov = DSTokenAbstract(    0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2);
-    // EndAbstract            end = EndAbstract(        0xaB14d3CE3F733CACB76eC2AbE7d2fcb00c99F3d5);
-    // IlkRegistryAbstract    reg = IlkRegistryAbstract(0x8b4ce5DCbb01e0e1f0521cd8dCfb31B308E52c24);
-
-    // OsmMomAbstract      osmMom = OsmMomAbstract(     0x76416A4d5190d071bfed309861527431304aA14f);
-    // FlipperMomAbstract flipMom = FlipperMomAbstract( 0xc4bE7F74Ee3743bDEd8E0fA218ee5cf06397f472);
-
-    // ChainlogAbstract chainlog  = ChainlogAbstract(   0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-
     RwaSpell spell;
     TellSpell tellSpell;
     CureSpell cureSpell;
@@ -459,7 +430,9 @@ contract DssSpellTest is DSTest, DSMath {
     event Debug(uint256 index, bytes32 what);
 
     // not provided in DSMath
-    function rpow(uint256 x, uint256 n, uint256 b) internal pure returns (uint256 z) {
+    function rpow(
+        uint256 x, uint256 n, uint256 b
+    ) internal pure returns (uint256 z) {
       assembly {
         switch x case 0 {switch n case 0 {z := b} default {z := 0}}
         default {
@@ -493,32 +466,36 @@ contract DssSpellTest is DSTest, DSMath {
         return (10000 + percentValue) * (10 ** 23);
     }
 
-    function diffCalc(uint256 expectedRate_, uint256 yearlyYield_) public pure returns (uint256) {
-        return (expectedRate_ > yearlyYield_) ? expectedRate_ - yearlyYield_ : yearlyYield_ - expectedRate_;
+    function diffCalc(
+        uint256 expectedRate_, uint256 yearlyYield_
+    ) public pure returns (uint256) {
+        return (expectedRate_ > yearlyYield_) ?
+            expectedRate_ - yearlyYield_ : yearlyYield_ - expectedRate_;
     }
 
     function setUp() public {
         hevm = Hevm(address(CHEAT_CODE));
         rates = new Rates();
 
-        spell = KOVAN_SPELL != address(0) ? RwaSpell(KOVAN_SPELL) : new RwaSpell();
+        spell = KOVAN_SPELL != address(0) ?
+            RwaSpell(KOVAN_SPELL) : new RwaSpell();
 
         //
         // Test for all system configuration changes
         //
         afterSpell = SystemValues({
-            pot_dsr:               0,                       // In basis points
-            vat_Line:              12320 * MILLION / 100,  // In whole Dai units
-            pause_delay:           60,                // In seconds
-            vow_wait:              3600,               // In seconds
+            pot_dsr:               0,                     // In basis points
+            vat_Line:              12320 * MILLION / 100, // In whole Dai units
+            pause_delay:           60,                    // In seconds
+            vow_wait:              3600,                  // In seconds
             vow_dump:              2,                     // In whole Dai units
-            vow_sump:              50,                   // In whole Dai units
-            vow_bump:              10,                   // In whole Dai units
-            vow_hump:              500,             // In whole Dai units
-            cat_box:               10 * THOUSAND,            // In whole Dai units
-            osm_mom_authority:     address(0),              // OsmMom authority
-            flipper_mom_authority: address(0),              // FlipperMom authority
-            ilk_count:             18                       // Num expected in system
+            vow_sump:              50,                    // In whole Dai units
+            vow_bump:              10,                    // In whole Dai units
+            vow_hump:              500,                   // In whole Dai units
+            cat_box:               10 * THOUSAND,         // In whole Dai units
+            osm_mom_authority:     address(0),            // OsmMom authority
+            flipper_mom_authority: address(0),            // FlipperMom authority
+            ilk_count:             18                     // Num expected in system
         });
 
         //
@@ -626,23 +603,25 @@ contract DssSpellTest is DSTest, DSMath {
 
         uint256 castTime = now + pause.delay();
 
-        // uint256 day = (castTime / 1 days + 3) % 7;
-        // if(day >= 5) {
-        //     castTime += 7 days - day * 86400;
-        // }
+        uint256 day = (castTime / 1 days + 3) % 7;
+        if(day >= 5) {
+            castTime += 7 days - day * 86400;
+        }
 
-        // uint256 hour = castTime / 1 hours % 24;
-        // if (hour >= 21) {
-        //     castTime += 24 hours - hour * 3600 + 14 hours;
-        // } else if (hour < 14) {
-        //     castTime += 14 hours - hour * 3600;
-        // }
+        uint256 hour = castTime / 1 hours % 24;
+        if (hour >= 21) {
+            castTime += 24 hours - hour * 3600 + 14 hours;
+        } else if (hour < 14) {
+            castTime += 14 hours - hour * 3600;
+        }
 
         hevm.warp(castTime);
         spell.cast();
     }
 
-    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+    function stringToBytes32(
+        string memory source
+    ) public pure returns (bytes32 result) {
         assembly {
             result := mload(add(source, 32))
         }
