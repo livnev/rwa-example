@@ -5,6 +5,8 @@ interface GemLike {
     function balanceOf(address) external returns (uint256);
 }
 
+// TODO: add custom events
+
 contract RwaConduit {
     GemLike public gov;
     GemLike public dai;

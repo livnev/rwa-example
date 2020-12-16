@@ -1,4 +1,4 @@
-all    :; dapp build
+all    :; dapp --use solc:0.5.12 build
 clean  :; dapp clean
-test   :; dapp test
+test   :; ./test-rwaspell.sh
 deploy :; dapp create RwaExample

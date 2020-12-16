@@ -32,7 +32,7 @@ contract RwaFlipper {
         wards[msg.sender] = 1;
     }
 
-    function file(bytes32 what, address data) external note auth {
+    function file(bytes32 what, address data) external auth {
         if (what == "cat") cat = CatLike(data);
         else revert("RwaFlipper/file-unrecognized-param");
     }

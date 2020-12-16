@@ -6,9 +6,9 @@ import "lib/dss-interfaces/src/dss/GemJoinAbstract.sol";
 import "lib/dss-interfaces/src/dss/DaiJoinAbstract.sol";
 import "lib/dss-interfaces/src/dss/DaiAbstract.sol";
 
-import "./lib.sol";
+// TODO: add custom events
 
-contract RwaUrn is LibNote {
+contract RwaUrn {
     // --- auth ---
     mapping (address => uint) public wards;
     mapping (address => uint) public can;

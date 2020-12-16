@@ -365,13 +365,11 @@ contract DssSpellTest is DSTest, DSMath {
     Hevm hevm;
     Rates rates;
 
-    bytes32 constant ilk = "RWA-001";
-
     // KOVAN ADDRESSES
     DSPauseAbstract      pause = DSPauseAbstract(    0x8754E6ecb4fe68DaA5132c2886aB39297a5c7189);
     address         pauseProxy =                     0x0e4725db88Bb038bBa4C4723e91Ba183BE11eDf3;
 
-    DSChief2 chief = DSChief2(    0x27E0c9567729Ea6e3241DE74B3dE499b7ddd3fe6);
+    DSChief2             chief = DSChief2(           0x27E0c9567729Ea6e3241DE74B3dE499b7ddd3fe6);
     VatAbstract            vat = VatAbstract(        0xbA987bDB501d131f766fEe8180Da5d81b34b69d9);
 
     CatAbstract            cat = CatAbstract(        0xdDb5F7A3A5558b9a6a1f3382BD75E2268d1c6958);
