@@ -1,5 +1,9 @@
 pragma solidity 0.5.12;
 
+// hax: needed for the deploy scripts
+import "dss-gem-joins/join-auth.sol";
+import "ds-value/value.sol";
+
 import "ds-math/math.sol";
 import "ds-test/test.sol";
 import "lib/dss-interfaces/src/Interfaces.sol";
@@ -142,7 +146,7 @@ contract EndSpell {
 contract OperatorSpellAction {
     RwaUrnLike constant rwaurn =
         RwaUrnLike(0xC6172B516f265dF53123F052FAAEB2AD63e49df7);
-    bytes32 constant ilk = "RWA-001";
+    bytes32 constant ilk = "RWA001-A";
     address test;
 
     constructor(address _test) public {
@@ -191,7 +195,7 @@ contract OperatorSpell {
 contract CullSpellAction {
     RwaLiquidationLike constant rwapip =
         RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
-    bytes32 constant ilk = "RWA-001";
+    bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
         rwapip.cull(ilk);
@@ -235,7 +239,7 @@ contract CullSpell {
 contract CureSpellAction {
     RwaLiquidationLike constant rwapip =
         RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
-    bytes32 constant ilk = "RWA-001";
+    bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
         rwapip.cure(ilk);
@@ -279,7 +283,7 @@ contract CureSpell {
 contract TellSpellAction {
     RwaLiquidationLike constant rwapip =
         RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
-    bytes32 constant ilk = "RWA-001";
+    bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
         rwapip.tell(ilk);
@@ -385,23 +389,36 @@ contract DssSpellTest is DSTest, DSMath {
     DSTokenAbstract        dai = DSTokenAbstract(    0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
 
     ChainlogAbstract chainlog  = ChainlogAbstract(   0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-
-    address constant RWA001_GEM      = 0xE255c837f9363213dFD716C8Ed874A8B33e6a553;
-    address constant MCD_JOIN_RWA001 = 0x70efd9582843043d5055e558532F700e29B4Ff1a;
-    address constant MCD_FLIP_RWA001 = 0x8022Fd8a28A3acCE3C45bBbca8d3B7B972700153;
-    address constant PIP_RWA001      = 0x51486fbD0e669b48eA28Dee273Fac5F89402f982;
-    address constant PIP             = 0x0318D82C3b2a23d993dcE881aada122f311ca901;
-    address constant RWA_URN         = 0xC6172B516f265dF53123F052FAAEB2AD63e49df7;
-    address constant RWA_ROUTING     = 0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc;
-    address constant RWA_CONDUIT     = 0x90602c11FF17736964c1C0a5a4E9dc4c3C1D7aeA;
+    /*
+        OPERATOR: 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e
+        TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
+        TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
+        ILK: RWA001-A
+        RWA001: 0x2373bEFCDB6B8Ea808Ac2CD2Cf15a99fF3dc8132
+        PIP_RWA001: 0x7f6666bFB825cF10423b91Ac5f119D63a5A00C47
+        MCD_JOIN_RWA001_A: 0xd22da469EdbdAe73ECdFe0EB460BaE048d08E1B0
+        MCD_FLIP_RWA001_A_A: 0x539714891180e37d7144F4d845402F7Fb89098CD
+        RWA001_A_URN: 0x708cE58F013843816e7eaaa4Ab8E4341D29D8Cc8
+        RWA001_A_CONDUIT: 0xa2A1362E6283e8020DC6FC0F46C51e0da8eF345F
+        RWA001_A_ROUTING_CONDUIT: 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831
+        RWA001_LIQUIDATION_ORACLE: 0x0380A1d2876648894C4892480A3c4312c4904887
+    */
+    address constant RWA001_GEM                = 0x2373bEFCDB6B8Ea808Ac2CD2Cf15a99fF3dc8132;
+    address constant PIP_RWA001                = 0x7f6666bFB825cF10423b91Ac5f119D63a5A00C47;
+    address constant MCD_JOIN_RWA001_A         = 0xd22da469EdbdAe73ECdFe0EB460BaE048d08E1B0;
+    address constant MCD_FLIP_RWA001_A         = 0x539714891180e37d7144F4d845402F7Fb89098CD;
+    address constant RWA001_A_URN              = 0x708cE58F013843816e7eaaa4Ab8E4341D29D8Cc8;
+    address constant RWA001_A_CONDUIT          = 0x2B1D6FB8A8db0F8b360c52ED7adb5394e45E554A;
+    address constant RWA001_A_ROUTING_CONDUIT  = 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831;
+    address constant RWA001_LIQUIDATION_ORACLE = 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831;
 
     DSTokenAbstract constant rwagem     = DSTokenAbstract(RWA001_GEM);
-    GemJoinAbstract constant rwajoin    = GemJoinAbstract(MCD_JOIN_RWA001);
-    FlipAbstract constant rwaflip       = FlipAbstract(MCD_FLIP_RWA001);
-    RwaLiquidationLike constant rwapip  = RwaLiquidationLike(PIP_RWA001);
-    RwaUrnLike constant rwaurn          = RwaUrnLike(RWA_URN);
-    RwaRoutingLike constant rwarouting  = RwaRoutingLike(RWA_ROUTING);
-    RwaRoutingLike constant rwaconduit  = RwaRoutingLike(RWA_CONDUIT);
+    GemJoinAbstract constant rwajoin    = GemJoinAbstract(MCD_JOIN_RWA001_A);
+    FlipAbstract constant rwaflip       = FlipAbstract(MCD_FLIP_RWA001_A);
+    RwaLiquidationLike constant rwapip  = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
+    RwaUrnLike constant rwaurn          = RwaUrnLike(RWA001_A_URN);
+    RwaRoutingLike constant rwarouting  = RwaRoutingLike(RWA001_A_ROUTING_CONDUIT);
+    RwaRoutingLike constant rwaconduit  = RwaRoutingLike(RWA001_A_CONDUIT);
 
     address    makerDeployer06          = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
@@ -501,9 +518,9 @@ contract DssSpellTest is DSTest, DSMath {
         //
         // Test for all collateral based changes here
         //
-        afterSpell.collaterals["RWA-001"] = CollateralValues({
-            line:         490 * MILLION,   // In whole Dai units
-            dust:         100,             // In whole Dai units
+        afterSpell.collaterals["RWA001-A"] = CollateralValues({
+            line:         1000,            // In whole Dai units
+            dust:         0,               // In whole Dai units
             pct:          200,             // In basis points
             chop:         1300,            // In basis points
             dunk:         50 * THOUSAND,   // In whole Dai units
@@ -809,11 +826,13 @@ contract DssSpellTest is DSTest, DSMath {
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
+        // TODO: add these back into the test
         // checkSystemValues(afterSpell);
 
         // checkCollateralValues(afterSpell);
     }
 
+    // TODO: add test back
     // function testChainlogValues() public {
     //     vote();
     //     scheduleWaitAndCast();
@@ -846,7 +865,7 @@ contract DssSpellTest is DSTest, DSMath {
         hevm.warp(castTime);
         tellSpell.cast();
         hevm.warp(172801);
-        assertTrue(!rwapip.good("RWA-001"));
+        assertTrue(!rwapip.good("RWA001-A"));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CURE_GOOD() public {
@@ -863,7 +882,7 @@ contract DssSpellTest is DSTest, DSMath {
         hevm.warp(castTime);
         tellSpell.cast();
         hevm.warp(172801);
-        assertTrue(!rwapip.good("RWA-001"));
+        assertTrue(!rwapip.good("RWA001-A"));
 
         cureSpell = new CureSpell();
         voteTemp(address(cureSpell));
@@ -872,7 +891,7 @@ contract DssSpellTest is DSTest, DSMath {
         castTime = now + pause.delay();
         hevm.warp(castTime);
         cureSpell.cast();
-        assertTrue(rwapip.good("RWA-001"));
+        assertTrue(rwapip.good("RWA001-A"));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CULL() public {
@@ -889,7 +908,7 @@ contract DssSpellTest is DSTest, DSMath {
         hevm.warp(castTime);
         tellSpell.cast();
         hevm.warp(172801);
-        assertTrue(!rwapip.good("RWA-001"));
+        assertTrue(!rwapip.good("RWA001-A"));
 
         cullSpell = new CullSpell();
         voteTemp(address(cullSpell));
@@ -898,8 +917,8 @@ contract DssSpellTest is DSTest, DSMath {
         castTime = now + pause.delay();
         hevm.warp(castTime);
         cullSpell.cast();
-        assertTrue(!rwapip.good("RWA-001"));
-        assertEq(DSValueAbstract(PIP).read(), bytes32(0));
+        assertTrue(!rwapip.good("RWA001-A"));
+        assertEq(DSValueAbstract(PIP_RWA001).read(), bytes32(0));
     }
 
     function testSpellIsCast_RWA001_OPERATOR_LOCK_DRAW_CONDUITS_WIPE_FREE() public {
@@ -980,6 +999,7 @@ contract DssSpellTest is DSTest, DSMath {
         // TODO: finish
     }
 
+    // TODO: finish up
     // function testSpellIsCast_ROUTING_CONDUIT() public {
     //     vote();
     //     scheduleWaitAndCast();
