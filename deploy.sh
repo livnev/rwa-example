@@ -1,9 +1,10 @@
 #!/bin/sh
 
 ILK="RWA-001"
-SOLC_FLAGS="--optimize --optimize-runs=1"
+ILK_ENCODED=$(seth --to-bytes32 "$(seth --from-ascii ${ILK})"))
 
 # build it
+SOLC_FLAGS="--optimize --optimize-runs=1"
 dapp --use solc:0.5.12 build
 
 # tokenize it
@@ -16,8 +17,7 @@ seth send ${RWA_ROUTING_CONDUIT} 'rely(address)' ${MCD_PAUSE_PROXY}
 seth send ${RWA_ROUTING_CONDUIT} 'deny(address)' ${ETH_FROM}
 
 # join it
-RWA_CONDUIT=$(dapp create AuthGemJoin ${MCD_GOV} ${MCD_DAI})
-# TODO add kiss() calls for trust
+RWA_JOIN=$(dapp create AuthGemJoin ${MCD_VAT} ${ILK_ENCODED} ${RWA_TOKEN})
 seth send ${RWA_ROUTING_CONDUIT} 'rely(address)' ${MCD_PAUSE_PROXY}
 seth send ${RWA_ROUTING_CONDUIT} 'deny(address)' ${ETH_FROM}
 
@@ -31,7 +31,7 @@ seth send ${RWA_FLIPPER} 'deny(address)' ${ETH_FROM}
 RWA_CONDUIT=$(dapp create RwaConduit ${MCD_GOV} ${MCD_DAI} ${RWA_URN})
 
 # flip it
-RWA_FLIPPER=$(dapp create RwaFlipper ${MCD_VAT} ${MCD_CAT} $(seth --to-bytes32 "$(seth --from-ascii ${ILK})"))
+RWA_FLIPPER=$(dapp create RwaFlipper ${MCD_VAT} ${MCD_CAT} ${ILK_ENCODED})
 seth send ${RWA_FLIPPER} 'rely(address)' ${MCD_PAUSE_PROXY}
 seth send ${RWA_FLIPPER} 'deny(address)' ${ETH_FROM}
 
