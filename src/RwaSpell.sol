@@ -60,30 +60,23 @@ contract SpellAction {
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x2373bEFCDB6B8Ea808Ac2CD2Cf15a99fF3dc8132
-        PIP_RWA001: 0x7f6666bFB825cF10423b91Ac5f119D63a5A00C47
-        MCD_JOIN_RWA001_A: 0xd22da469EdbdAe73ECdFe0EB460BaE048d08E1B0
-        MCD_FLIP_RWA001_A: 0x539714891180e37d7144F4d845402F7Fb89098CD
-        RWA001_A_URN: 0x708cE58F013843816e7eaaa4Ab8E4341D29D8Cc8
-        RWA001_A_CONDUIT: 0xa2A1362E6283e8020DC6FC0F46C51e0da8eF345F
-        RWA001_A_ROUTING_CONDUIT: 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831
-        RWA001_LIQUIDATION_ORACLE: 0x0380A1d2876648894C4892480A3c4312c4904887
+        RWA001: 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE
+        PIP_RWA001: 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86
+        MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
+        MCD_FLIP_RWA001_A: 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9
+        RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
+        RWA001_A_CONDUIT: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
+        RWA001_A_ROUTING_CONDUIT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
+        RWA001_LIQUIDATION_ORACLE: 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61
     */
-    address constant RWA001_GEM                = 0x2373bEFCDB6B8Ea808Ac2CD2Cf15a99fF3dc8132;
-    address constant PIP_RWA001                = 0x7f6666bFB825cF10423b91Ac5f119D63a5A00C47;
-    address constant MCD_JOIN_RWA001_A         = 0xd22da469EdbdAe73ECdFe0EB460BaE048d08E1B0;
-    address constant MCD_FLIP_RWA001_A         = 0x539714891180e37d7144F4d845402F7Fb89098CD;
-    address constant RWA001_A_URN              = 0x708cE58F013843816e7eaaa4Ab8E4341D29D8Cc8;
-    address constant RWA001_A_CONDUIT          = 0xa2A1362E6283e8020DC6FC0F46C51e0da8eF345F;
-    address constant RWA001_A_ROUTING_CONDUIT  = 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831;
-    address constant RWA001_LIQUIDATION_ORACLE = 0x0380A1d2876648894C4892480A3c4312c4904887;
-
-    // may be able to assign these as immutable
-    // try constants
-    DSValueAbstract constant pippip = DSValueAbstract(PIP_RWA001);
-
-    RwaLiquidationLike constant oracle =
-        RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
+    address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
+    address constant PIP_RWA001                = 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86;
+    address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
+    address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
+    address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
+    address constant RWA001_A_CONDUIT          = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
+    address constant RWA001_A_ROUTING_CONDUIT  = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
+    address constant RWA001_LIQUIDATION_ORACLE = 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61;
 
     uint256 constant SIX_PCT_RATE    = 1000000001847694957439350562;
 
@@ -173,10 +166,16 @@ contract SpellAction {
         // init the RwaLiquidationOracle
         // doc: "doc" TODO
         // tau: 5 minutes
-        oracle.init(ilk, doc, PIP_RWA001, 300);
+        RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).init(
+            ilk, doc, PIP_RWA001, 300
+        );
 
         // ilk registry
         IlkRegistryAbstract(ILK_REGISTRY).add(MCD_JOIN_RWA001_A);
+
+        // TODO: add to deploy scripts and remove
+        // give the urn permissions on the join adapter
+        GemJoinAbstract(MCD_JOIN_RWA001_A).rely(RWA001_A_URN);
     }
 }
 

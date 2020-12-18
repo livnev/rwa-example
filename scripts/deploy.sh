@@ -31,13 +31,18 @@ seth send "${RWA_ROUTING_CONDUIT}" 'deny(address)' "${ETH_FROM}"
 # join it
 RWA_JOIN=$(dapp create AuthGemJoin "${MCD_VAT}" "${ILK_ENCODED}" "${RWA_TOKEN}")
 seth send "${RWA_JOIN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
-seth send "${RWA_JOIN}" 'deny(address)' "${ETH_FROM}"
 
 # urn it
 RWA_URN=$(dapp create RwaUrn "${MCD_VAT}" "${RWA_JOIN}" "${MCD_JOIN_DAI}" "${RWA_ROUTING_CONDUIT}")
 seth send "${RWA_URN}" 'hope(address)' "${OPERATOR}"
 seth send "${RWA_URN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_URN}" 'deny(address)' "${ETH_FROM}"
+
+# rely it
+seth send "${RWA_JOIN}" 'rely(address)' "${RWA_URN}"
+
+# deny it
+seth send "${RWA_JOIN}" 'deny(address)' "${ETH_FROM}"
 
 # connect it
 RWA_CONDUIT=$(dapp create RwaConduit "${MCD_GOV}" "${MCD_DAI}" "${RWA_URN}")
@@ -47,15 +52,20 @@ RWA_FLIPPER=$(dapp create RwaFlipper "${MCD_VAT}" "${MCD_CAT}" "${ILK_ENCODED}")
 seth send "${RWA_FLIPPER}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_FLIPPER}" 'deny(address)' "${ETH_FROM}"
 
-# pip it
-RWA_PIP=$(dapp create DSValue)
-seth send "${RWA_PIP}" 'poke(bytes32)' "${PRICE}"
-seth send "${RWA_PIP}" 'setOwner(address)' "${MCD_PAUSE_PROXY}"
-
 # price it
 RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle)
 seth send "${RWA_LIQUIDATION_ORACLE}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_LIQUIDATION_ORACLE}" 'deny(address)' "${ETH_FROM}"
+
+# pip it
+RWA_PIP=$(dapp create DSValue)
+seth send "${RWA_PIP}" 'poke(bytes32)' "${PRICE}"
+seth send "${RWA_PIP}" 'setOwner(address)' "${RWA_LIQUIDATION_ORACLE}"
+# seth send "${RWA_PIP}" 'setOwner(address)' "${MCD_PAUSE_PROXY}"
+# TODO this likely needs a custom authority so both governance and the
+# liquidation oracle can set the price.  Right now only one can, which means
+# either the price if fixed by governance, which isn't great as we want to give
+# more DC to RWA001, or there is a bug in setting the price to 0 in the cull().
 
 # print it
 echo "OPERATOR: ${OPERATOR}"

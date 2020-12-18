@@ -57,55 +57,12 @@ interface RwaLiquidationLike {
     function good(bytes32) external view returns (bool);
 }
 
-contract ConduitSpellAction {
-    RwaRoutingLike routing =
-        RwaRoutingLike(0x0CF836924fD65Af0DE42294c8e9FAcCC19A384Dc);
-
-    function execute() public {
-        routing.kiss(address(1));
-    }
-}
-
-contract ConduitSpell {
+contract EndSpellAction {
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-    DSPauseAbstract public pause =
-        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-    address         public action;
-    bytes32         public tag;
-    uint256         public eta;
-    bytes           public sig;
-    uint256         public expiration;
-    bool            public done;
-
-    constructor() public {
-        sig = abi.encodeWithSignature("execute()");
-        action = address(new ConduitSpellAction());
-        bytes32 _tag;
-        address _action = action;
-        assembly { _tag := extcodehash(_action) }
-        tag = _tag;
-    }
-
-    function schedule() public {
-        require(eta == 0, "This spell has already been scheduled");
-        eta = now + DSPauseAbstract(pause).delay();
-        pause.plot(action, tag, sig, eta);
-    }
-
-    function cast() public {
-        require(!done, "spell-already-cast");
-        done = true;
-        pause.exec(action, tag, sig, eta);
-    }
-}
-
-contract EndSpellAction {
-    EndAbstract constant end =
-        EndAbstract(0x24728AcF2E2C403F5d2db4Df6834B8998e56aA5F);
 
     function execute() public {
-        end.cage();
+        EndAbstract(CHANGELOG.getAddress("MCD_END")).cage();
     }
 }
 
@@ -144,9 +101,8 @@ contract EndSpell {
 }
 
 contract OperatorSpellAction {
-    RwaUrnLike constant rwaurn =
-        RwaUrnLike(0xC6172B516f265dF53123F052FAAEB2AD63e49df7);
-    bytes32 constant ilk = "RWA001-A";
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     address test;
 
     constructor(address _test) public {
@@ -154,7 +110,7 @@ contract OperatorSpellAction {
     }
 
     function execute() public {
-        rwaurn.hope(test);
+        RwaUrnLike(CHANGELOG.getAddress("RWA001_A_URN")).hope(test);
     }
 }
 
@@ -193,12 +149,14 @@ contract OperatorSpell {
 }
 
 contract CullSpellAction {
-    RwaLiquidationLike constant rwapip =
-        RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
-        rwapip.cull(ilk);
+        RwaLiquidationLike(
+            CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
+        ).cull(ilk);
     }
 }
 
@@ -237,12 +195,14 @@ contract CullSpell {
 }
 
 contract CureSpellAction {
-    RwaLiquidationLike constant rwapip =
-        RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
-        rwapip.cure(ilk);
+        RwaLiquidationLike(
+            CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
+        ).cure(ilk);
     }
 }
 
@@ -281,12 +241,14 @@ contract CureSpell {
 }
 
 contract TellSpellAction {
-    RwaLiquidationLike constant rwapip =
-        RwaLiquidationLike(0x51486fbD0e669b48eA28Dee273Fac5F89402f982);
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
-        rwapip.tell(ilk);
+        RwaLiquidationLike(
+            CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
+        ).tell(ilk);
     }
 }
 
@@ -389,38 +351,39 @@ contract DssSpellTest is DSTest, DSMath {
     DSTokenAbstract        dai = DSTokenAbstract(    0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
 
     ChainlogAbstract chainlog  = ChainlogAbstract(   0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+
     /*
         OPERATOR: 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x2373bEFCDB6B8Ea808Ac2CD2Cf15a99fF3dc8132
-        PIP_RWA001: 0x7f6666bFB825cF10423b91Ac5f119D63a5A00C47
-        MCD_JOIN_RWA001_A: 0xd22da469EdbdAe73ECdFe0EB460BaE048d08E1B0
-        MCD_FLIP_RWA001_A_A: 0x539714891180e37d7144F4d845402F7Fb89098CD
-        RWA001_A_URN: 0x708cE58F013843816e7eaaa4Ab8E4341D29D8Cc8
-        RWA001_A_CONDUIT: 0xa2A1362E6283e8020DC6FC0F46C51e0da8eF345F
-        RWA001_A_ROUTING_CONDUIT: 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831
-        RWA001_LIQUIDATION_ORACLE: 0x0380A1d2876648894C4892480A3c4312c4904887
+        RWA001: 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE
+        PIP_RWA001: 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86
+        MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
+        MCD_FLIP_RWA001_A: 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9
+        RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
+        RWA001_A_CONDUIT: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
+        RWA001_A_ROUTING_CONDUIT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
+        RWA001_LIQUIDATION_ORACLE: 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61
     */
-    address constant RWA001_GEM                = 0x2373bEFCDB6B8Ea808Ac2CD2Cf15a99fF3dc8132;
-    address constant PIP_RWA001                = 0x7f6666bFB825cF10423b91Ac5f119D63a5A00C47;
-    address constant MCD_JOIN_RWA001_A         = 0xd22da469EdbdAe73ECdFe0EB460BaE048d08E1B0;
-    address constant MCD_FLIP_RWA001_A         = 0x539714891180e37d7144F4d845402F7Fb89098CD;
-    address constant RWA001_A_URN              = 0x708cE58F013843816e7eaaa4Ab8E4341D29D8Cc8;
-    address constant RWA001_A_CONDUIT          = 0x2B1D6FB8A8db0F8b360c52ED7adb5394e45E554A;
-    address constant RWA001_A_ROUTING_CONDUIT  = 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831;
-    address constant RWA001_LIQUIDATION_ORACLE = 0xa6061a6e85c387Cc757c194961BCc3DB90f9e831;
+    address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
+    address constant PIP_RWA001                = 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86;
+    address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
+    address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
+    address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
+    address constant RWA001_A_CONDUIT          = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
+    address constant RWA001_A_ROUTING_CONDUIT  = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
+    address constant RWA001_LIQUIDATION_ORACLE = 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61;
 
-    DSTokenAbstract constant rwagem     = DSTokenAbstract(RWA001_GEM);
-    GemJoinAbstract constant rwajoin    = GemJoinAbstract(MCD_JOIN_RWA001_A);
-    FlipAbstract constant rwaflip       = FlipAbstract(MCD_FLIP_RWA001_A);
-    RwaLiquidationLike constant rwapip  = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
-    RwaUrnLike constant rwaurn          = RwaUrnLike(RWA001_A_URN);
-    RwaRoutingLike constant rwarouting  = RwaRoutingLike(RWA001_A_ROUTING_CONDUIT);
-    RwaRoutingLike constant rwaconduit  = RwaRoutingLike(RWA001_A_CONDUIT);
+    DSTokenAbstract constant rwagem    = DSTokenAbstract(RWA001_GEM);
+    GemJoinAbstract constant rwajoin   = GemJoinAbstract(MCD_JOIN_RWA001_A);
+    FlipAbstract constant rwaflip      = FlipAbstract(MCD_FLIP_RWA001_A);
+    RwaLiquidationLike constant oracle = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
+    RwaUrnLike constant rwaurn         = RwaUrnLike(RWA001_A_URN);
+    RwaRoutingLike constant rwaconduit = RwaRoutingLike(RWA001_A_CONDUIT);
+    RwaRoutingLike constant rwarouting = RwaRoutingLike(RWA001_A_ROUTING_CONDUIT);
 
-    address    makerDeployer06          = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
+    address    makerDeployer06         = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
     RwaSpell spell;
     TellSpell tellSpell;
@@ -428,7 +391,6 @@ contract DssSpellTest is DSTest, DSMath {
     CullSpell cullSpell;
     OperatorSpell operatorSpell;
     EndSpell endSpell;
-    ConduitSpell conduitSpell;
 
     // CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
     bytes20 constant CHEAT_CODE =
@@ -831,20 +793,20 @@ contract DssSpellTest is DSTest, DSMath {
 
         // checkCollateralValues(afterSpell);
     }
-
-    // TODO: add test back
-    // function testChainlogValues() public {
-    //     vote();
-    //     scheduleWaitAndCast();
-    //     assertTrue(spell.done());
-
-    //     // assertEq(chainlog.getAddress("FLIP_FAB"), 0x4ACdbe9dd0d00b36eC2050E805012b8Fc9974f2b);
-    //     // assertEq(chainlog.getAddress("GUSD"), 0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd);
-    //     // assertEq(chainlog.getAddress("MCD_JOIN_GUSD_A"), 0xe29A14bcDeA40d83675aa43B72dF07f649738C8b);
-    //     // assertEq(chainlog.getAddress("MCD_FLIP_GUSD_A"), 0xCAa8D152A8b98229fB77A213BE16b234cA4f612f);
-    //     // assertEq(chainlog.getAddress("PIP_GUSD"), 0xf45Ae69CcA1b9B043dAE2C83A5B65Bc605BEc5F5);
-    // }
-
+//
+//    // TODO: add test back
+//    // function testChainlogValues() public {
+//    //     vote();
+//    //     scheduleWaitAndCast();
+//    //     assertTrue(spell.done());
+//
+//    //     // assertEq(chainlog.getAddress("FLIP_FAB"), 0x4ACdbe9dd0d00b36eC2050E805012b8Fc9974f2b);
+//    //     // assertEq(chainlog.getAddress("GUSD"), 0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd);
+//    //     // assertEq(chainlog.getAddress("MCD_JOIN_GUSD_A"), 0xe29A14bcDeA40d83675aa43B72dF07f649738C8b);
+//    //     // assertEq(chainlog.getAddress("MCD_FLIP_GUSD_A"), 0xCAa8D152A8b98229fB77A213BE16b234cA4f612f);
+//    //     // assertEq(chainlog.getAddress("PIP_GUSD"), 0xf45Ae69CcA1b9B043dAE2C83A5B65Bc605BEc5F5);
+//    // }
+//
     function testSpellIsCast_RWA001_INTEGRATION() public {
         vote();
         scheduleWaitAndCast();
@@ -864,8 +826,8 @@ contract DssSpellTest is DSTest, DSMath {
         uint256 castTime = now + pause.delay();
         hevm.warp(castTime);
         tellSpell.cast();
-        hevm.warp(172801);
-        assertTrue(!rwapip.good("RWA001-A"));
+        hevm.warp(600);
+        assertTrue(!oracle.good("RWA001-A"));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CURE_GOOD() public {
@@ -881,8 +843,8 @@ contract DssSpellTest is DSTest, DSMath {
         uint256 castTime = now + pause.delay();
         hevm.warp(castTime);
         tellSpell.cast();
-        hevm.warp(172801);
-        assertTrue(!rwapip.good("RWA001-A"));
+        hevm.warp(600);
+        assertTrue(!oracle.good("RWA001-A"));
 
         cureSpell = new CureSpell();
         voteTemp(address(cureSpell));
@@ -891,7 +853,7 @@ contract DssSpellTest is DSTest, DSMath {
         castTime = now + pause.delay();
         hevm.warp(castTime);
         cureSpell.cast();
-        assertTrue(rwapip.good("RWA001-A"));
+        assertTrue(oracle.good("RWA001-A"));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CULL() public {
@@ -907,8 +869,8 @@ contract DssSpellTest is DSTest, DSMath {
         uint256 castTime = now + pause.delay();
         hevm.warp(castTime);
         tellSpell.cast();
-        hevm.warp(172801);
-        assertTrue(!rwapip.good("RWA001-A"));
+        hevm.warp(600);
+        assertTrue(!oracle.good("RWA001-A"));
 
         cullSpell = new CullSpell();
         voteTemp(address(cullSpell));
@@ -917,7 +879,7 @@ contract DssSpellTest is DSTest, DSMath {
         castTime = now + pause.delay();
         hevm.warp(castTime);
         cullSpell.cast();
-        assertTrue(!rwapip.good("RWA001-A"));
+        assertTrue(!oracle.good("RWA001-A"));
         assertEq(DSValueAbstract(PIP_RWA001).read(), bytes32(0));
     }
 
@@ -977,6 +939,8 @@ contract DssSpellTest is DSTest, DSMath {
 
         dai.transfer(address(rwaconduit), dai.balanceOf(address(this)));
         rwaconduit.push();
+
+        assertEq(dai.balanceOf(address(rwaurn)), 1 * WAD);
 
         rwaurn.wipe(1 * WAD);
         rwaurn.free(1 * WAD);
