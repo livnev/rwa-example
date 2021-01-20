@@ -73,7 +73,7 @@ contract RwaLiquidationOracle {
     // --- write-off ---
     function cull(bytes32 ilk) external auth {
         require(ilks[ilk].tau != 0 && ilks[ilk].toc + ilks[ilk].tau >= now);
-        DSValue(ilks[ilk].pip).poke(bytes32(0));
+        DSValue(ilks[ilk].pip).poke(bytes32(uint256(1)));
         emit Cull(ilk);
     }
 
