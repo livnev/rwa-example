@@ -15,11 +15,11 @@ import {Flapper} from 'dss/flap.sol';
 import {DaiJoin} from 'dss/join.sol';
 import {AuthGemJoin} from "dss-gem-joins/join-auth.sol";
 
-import {RwaToken} from "./RwaToken.sol";
-import {RwaConduit, RwaRoutingConduit} from "./RwaConduit.sol";
-import {RwaFlipper} from "./RwaFlipper.sol";
-import {RwaLiquidationOracle} from "./RwaLiquidationOracle.sol";
-import {RwaUrn} from "./RwaUrn.sol";
+import {RwaToken} from "../RwaToken.sol";
+import {RwaConduit, RwaRoutingConduit} from "../RwaConduit.sol";
+import {RwaFlipper} from "../RwaFlipper.sol";
+import {RwaLiquidationOracle} from "../RwaLiquidationOracle.sol";
+import {RwaUrn} from "../RwaUrn.sol";
 
 interface Hevm {
     function warp(uint256) external;
