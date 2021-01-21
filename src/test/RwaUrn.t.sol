@@ -141,7 +141,7 @@ contract RwaExampleTest is DSTest, DSMath {
 
         // the first RWA ilk is Acme Real World Assets Corporation
         vat.init("acme");
-        vat.file("Line", rad(ceiling));
+        vat.file("Line", 100 * rad(ceiling));
         vat.file("acme", "line", rad(ceiling));
 
         oracle = new RwaLiquidationOracle();
@@ -244,5 +244,19 @@ contract RwaExampleTest is DSTest, DSMath {
     }
 
     function test_oracle_bump() public {
+        usr.lock(1 ether);
+        usr.draw(400 ether);
+
+        outConduit.push();
+
+        // increase ceiling by 200 dai
+        vat.file("acme", "line", rad(ceiling + 200 ether));
+        oracle.bump("acme", wmul(ceiling + 200 ether, 1.1 ether));
+        spot.poke("acme");
+
+        usr.draw(200 ether);
+        outConduit.push();
+
+        assertEq(dai.balanceOf(address(rec)), 600 ether);
     }
 }
