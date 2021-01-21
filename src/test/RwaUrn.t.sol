@@ -128,8 +128,8 @@ contract RwaExampleTest is DSTest, DSMath {
 
         cat = new Cat(address(vat));
         cat.file("vow", address(vow));
-        cat.file("box", rad(10_000 ether));
-        cat.file("acme", "chop", RAY);
+        cat.file("box", rad(1_000_000 ether));
+        cat.file("acme", "chop", WAD);
         cat.file("acme", "dunk", rad(1_000_000 ether));
         vat.rely(address(cat));
         vow.rely(address(cat));
