@@ -16,9 +16,10 @@ import "lib/dss-interfaces/src/dapp/DSValueAbstract.sol";
 
 interface RwaLiquidationLike {
     function wards(address) external returns (uint256);
+    function ilks(bytes32) external returns (bytes32,address,uint48,uint48);
     function rely(address) external;
     function deny(address) external;
-    function init(bytes32, bytes32, address, uint48) external;
+    function init(bytes32, uint256, bytes32, uint48) external;
     function tell(bytes32) external;
     function cure(bytes32) external;
     function cull(bytes32) external;
@@ -61,7 +62,6 @@ contract SpellAction {
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
         RWA001: 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE
-        PIP_RWA001: 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86
         MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
         MCD_FLIP_RWA001_A: 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9
         RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
@@ -70,7 +70,6 @@ contract SpellAction {
         RWA001_LIQUIDATION_ORACLE: 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61
     */
     address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
-    address constant PIP_RWA001                = 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86;
     address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
     address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
     address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
@@ -87,6 +86,9 @@ contract SpellAction {
     uint256 constant public RAY      = 10 ** 27;
     uint256 constant public RAD      = 10 ** 45;
 
+    uint256 constant RWA001_A_INITIAL_DC    = 1000 * RAD;
+    uint256 constant RWA001_A_INITIAL_PRICE = 1060 * WAD;
+
     function execute() external {
         // RWA001-A collateral deploy
 
@@ -95,7 +97,6 @@ contract SpellAction {
 
         // add RWA-001 contract to the changelog
         CHANGELOG.setAddress("RWA001", RWA001_GEM);
-        CHANGELOG.setAddress("PIP_RWA001", PIP_RWA001);
         CHANGELOG.setAddress("MCD_JOIN_RWA001_A", MCD_JOIN_RWA001_A);
         CHANGELOG.setAddress("MCD_FLIP_RWA001_A", MCD_FLIP_RWA001_A);
         CHANGELOG.setAddress("RWA001_LIQUIDATION_ORACLE", RWA001_LIQUIDATION_ORACLE);
@@ -111,8 +112,20 @@ contract SpellAction {
         require(FlipAbstract(MCD_FLIP_RWA001_A).vat()    == MCD_VAT, "flip-vat-not-match");
         require(FlipAbstract(MCD_FLIP_RWA001_A).ilk()    == ilk, "flip-ilk-not-match");
 
+        // DOC hash (TODO)
+        bytes32 doc = "doc";
+
+        // init the RwaLiquidationOracle
+        // doc: "doc" TODO
+        // tau: 5 minutes
+        RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).init(
+            ilk, RWA001_A_INITIAL_PRICE, doc, 300
+        );
+        (,address pip,,) = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).ilks(ilk);
+        CHANGELOG.setAddress("PIP_RWA001", pip);
+
         // Set price feed for RWA001
-        SpotAbstract(MCD_SPOT).file(ilk, "pip", PIP_RWA001);
+        SpotAbstract(MCD_SPOT).file(ilk, "pip", pip);
 
         // Set the RWA-001 flipper in the cat
         CatAbstract(MCD_CAT).file(ilk, "flip", MCD_FLIP_RWA001_A);
@@ -135,7 +148,7 @@ contract SpellAction {
         // FlipAbstract(MCD_FLIP_RWA001_A).rely(MCD_END);
 
         // 1000 debt ceiling
-        VatAbstract(MCD_VAT).file(ilk, "line", 1000 * RAD);
+        VatAbstract(MCD_VAT).file(ilk, "line", RWA001_A_INITIAL_DC);
 
         // No dust
         // VatAbstract(MCD_VAT).file(ilk, "dust", 0)
@@ -159,16 +172,6 @@ contract SpellAction {
 
         // poke the spotter to pull in a price
         SpotAbstract(MCD_SPOT).poke(ilk);
-
-        // DOC hash (TODO)
-        bytes32 doc = "doc";
-
-        // init the RwaLiquidationOracle
-        // doc: "doc" TODO
-        // tau: 5 minutes
-        RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).init(
-            ilk, doc, PIP_RWA001, 300
-        );
 
         // ilk registry
         IlkRegistryAbstract(ILK_REGISTRY).add(MCD_JOIN_RWA001_A);

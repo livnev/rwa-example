@@ -1,7 +1,7 @@
 pragma solidity >=0.5.12;
 
-// gets us DSValueAbstract for pips
-import "lib/dss-interfaces/src/dss/PipAbstract.sol";
+import "lib/dss-interfaces/src/dss/VatAbstract.sol";
+import 'ds-value/value.sol';
 
 contract RwaLiquidationOracle {
     // --- auth ---
@@ -19,39 +19,55 @@ contract RwaLiquidationOracle {
         _;
     }
 
+    VatAbstract public vat;
     struct Ilk {
-        bytes32         doc;
-        DSValueAbstract pip;
-        uint48          tau;
-        uint48          toc;
+        bytes32 doc;
+        address pip;
+        uint48  tau;
+        uint48  toc;
     }
     mapping (bytes32 => Ilk) public ilks;
 
     // Events
     event Rely(address usr);
     event Deny(address usr);
-    event Init(bytes32 ilk, bytes32 doc, address pip, uint48 tau);
+    event Init(bytes32 ilk, uint256 val, bytes32 doc, uint48 tau);
     event Tell(bytes32 ilk);
     event Cure(bytes32 ilk);
     event Cull(bytes32 ilk);
 
-    constructor() public {
+    constructor(address vat_) public {
+        vat = VatAbstract(vat_);
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
 
-    function init(bytes32 ilk, bytes32 doc, address pip, uint48 tau) external auth {
-        // pip, doc, and tau can be amended, but tau cannot decrease
+    function init(bytes32 ilk, uint256 val, bytes32 doc, uint48 tau) external auth {
+        // doc, and tau can be amended, but tau cannot decrease
         require(tau >= ilks[ilk].tau);
-        ilks[ilk].pip = DSValueAbstract(pip);
         ilks[ilk].doc = doc;
         ilks[ilk].tau = tau;
-        emit Init(ilk, doc, pip, tau);
+        if (ilks[ilk].pip == address(0)) {
+            DSValue pip = new DSValue();
+            ilks[ilk].pip = address(pip);
+            pip.poke(bytes32(val));
+        }
+        emit Init(ilk, val, doc, tau);
     }
 
+    // --- valuation adjustment ---
+    function bump(bytes32 ilk, uint256 val) external auth {
+        DSValue pip = DSValue(ilks[ilk].pip);
+        // only cull can decrease
+        require(val >= uint256(pip.read()));
+        DSValue(ilks[ilk].pip).poke(bytes32(val));
+    }
     // --- liquidation ---
     function tell(bytes32 ilk) external auth {
-        require(ilks[ilk].pip != DSValueAbstract(address(0)));
+        (,,,uint256 line,) = vat.ilks(ilk);
+        // DC must be set to zero first
+        require(line == 0);
+        require(ilks[ilk].pip != address(0));
         ilks[ilk].toc = uint48(now);
         emit Tell(ilk);
     }
@@ -63,13 +79,13 @@ contract RwaLiquidationOracle {
     // --- write-off ---
     function cull(bytes32 ilk) external auth {
         require(ilks[ilk].tau != 0 && ilks[ilk].toc + ilks[ilk].tau >= now);
-        ilks[ilk].pip.poke(bytes32(0));
+        DSValue(ilks[ilk].pip).poke(bytes32(uint256(1)));
         emit Cull(ilk);
     }
 
     // --- liquidation check ---
     function good(bytes32 ilk) external view returns (bool) {
-        require(ilks[ilk].pip != DSValueAbstract(address(0)));
+        require(ilks[ilk].pip != address(0));
         return (ilks[ilk].toc == 0 || ilks[ilk].toc + ilks[ilk].tau < now);
     }
 }

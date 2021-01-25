@@ -53,19 +53,9 @@ seth send "${RWA_FLIPPER}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_FLIPPER}" 'deny(address)' "${ETH_FROM}"
 
 # price it
-RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle)
+RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle "${MCD_VAT}")
 seth send "${RWA_LIQUIDATION_ORACLE}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_LIQUIDATION_ORACLE}" 'deny(address)' "${ETH_FROM}"
-
-# pip it
-RWA_PIP=$(dapp create DSValue)
-seth send "${RWA_PIP}" 'poke(bytes32)' "${PRICE}"
-seth send "${RWA_PIP}" 'setOwner(address)' "${RWA_LIQUIDATION_ORACLE}"
-# seth send "${RWA_PIP}" 'setOwner(address)' "${MCD_PAUSE_PROXY}"
-# TODO this likely needs a custom authority so both governance and the
-# liquidation oracle can set the price.  Right now only one can, which means
-# either the price if fixed by governance, which isn't great as we want to give
-# more DC to RWA001, or there is a bug in setting the price to 0 in the cull().
 
 # print it
 echo "OPERATOR: ${OPERATOR}"
