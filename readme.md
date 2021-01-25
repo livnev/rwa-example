@@ -5,15 +5,15 @@
 - `RwaLiquidationOracle`: which acts as a liquidation beacon for an off-chain enforcer.
 - `RwaFlipper`: which acts as a dummy liquidation module in the event of write-offs.
 - `RwaUrn`: which facilitates borrowing of DAI, delivering to a designated account.
+- `RwaRoutingConduit` and `RwaConduit`: which disburse and repay DAI
+- `RwaSpell`: which deploys and activates a new collateral type
+- `RwaToken`: which represents the RWA collateral in the system
 
 ## todo:
 
-- `RwaInitSpell`: which deploys and activates a new collateral type
-- intermediary wallet contracts for handling disbursement and repayment of DAI.
-- `RwaLiquidateSpell`: which allows MakerDAO governance to initiate liquidation proceedings.
+- `RwaTellSpell`: which allows MakerDAO governance to initiate liquidation proceedings.
 - `RwaRemedySpell`: which allows MakerDAO governance to dismiss liquidation proceedings.
 - `RwaWriteoffSpell`: which allows MakerDAO governance to write off a loan which was in liquidation.
-- ???
 
 ## deploy
 
