@@ -190,7 +190,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         vat.file("Line", 100 * rad(ceiling));
         vat.file("acme", "line", rad(ceiling));
 
-        oracle = new RwaLiquidationOracle();
+        oracle = new RwaLiquidationOracle(address(vat));
         oracle.init(
             "acme",
             wmul(ceiling, 1.1 ether),
@@ -243,7 +243,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.draw(400 ether);
 
         // dai can't move
-        assertTrue(!can_push(address(outConduit)));
+        assertTrue(! can_push(address(outConduit)));
 
         // deploy and whitelist new rec
         RwaUltimateRecipient newrec = new RwaUltimateRecipient(dai);
@@ -257,7 +257,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
     function test_cant_pick_unkissed_rec() public {
         RwaUltimateRecipient newrec = new RwaUltimateRecipient(dai);
-        assertTrue(!usr.can_pick(address(newrec)));
+        assertTrue(! usr.can_pick(address(newrec)));
     }
 
     function test_lock_and_draw() public {
@@ -271,14 +271,14 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
     function test_cant_draw_too_much() public {
         usr.lock(1 ether);
-        assertTrue(!usr.can_draw(500 ether));
+        assertTrue(! usr.can_draw(500 ether));
     }
 
     function test_cant_draw_as_rando() public {
         usr.lock(1 ether);
 
         RwaUser rando = new RwaUser(urn, outConduit, inConduit);
-        assertTrue(!rando.can_draw(100 ether));
+        assertTrue(! rando.can_draw(100 ether));
     }
 
     function test_partial_repay() public {
@@ -317,35 +317,54 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     }
 
     function test_oracle_cure() public {
+        usr.lock(1 ether);
+
         // flash the liquidation beacon
+        vat.file("acme", "line", rad(0));
         oracle.tell("acme");
+
+        // not able to borrow
+        assertTrue(! usr.can_draw(10 ether));
 
         hevm.warp(now + 1 weeks);
 
         oracle.cure("acme");
+        vat.file("acme", "line", rad(400 ether));
         assertTrue(oracle.good("acme"));
+
+        // able to borrow
+        usr.draw(100 ether);
+        outConduit.push();
+        assertEq(dai.balanceOf(address(rec)), 100 ether);
     }
 
     function test_oracle_cull_and_flip() public {
         usr.lock(1 ether);
-        usr.draw(400 ether);
+        // not at full utilisation
+        usr.draw(200 ether);
 
         // flash the liquidation beacon
+        vat.file("acme", "line", rad(0));
         oracle.tell("acme");
+
+        // not able to borrow
+        assertTrue(! usr.can_draw(10 ether));
 
         hevm.warp(now + 2 weeks);
 
         oracle.cull("acme");
-        assertTrue(! oracle.good("acme"));
-
         spot.poke("acme");
+
+        assertTrue(! oracle.good("acme"));
+        assertTrue(! usr.can_draw(10 ether));
+
         cat.bite("acme", address(urn));
 
         (uint ink, uint art) = vat.urns("acme", address(urn));
         assertEq(ink, 0);
         assertEq(art, 0);
 
-        assertEq(vat.sin(address(vow)), rad(400 ether));
+        assertEq(vat.sin(address(vow)), rad(200 ether));
     }
 
     function test_oracle_bump() public {
@@ -353,6 +372,9 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.draw(400 ether);
 
         outConduit.push();
+
+        // can't borrow more
+        assertTrue(!usr.can_draw(1 ether));
 
         // increase ceiling by 200 dai
         vat.file("acme", "line", rad(ceiling + 200 ether));
