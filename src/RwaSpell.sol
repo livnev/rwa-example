@@ -121,7 +121,7 @@ contract SpellAction {
         RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).init(
             ilk, RWA001_A_INITIAL_PRICE, doc, 300
         );
-        (bytes32 _, address pip, uint48 __, uint48 ___) = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).ilks(ilk);
+        (,address pip,,) = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).ilks(ilk);
         CHANGELOG.setAddress("PIP_RWA001", pip);
 
         // Set price feed for RWA001
