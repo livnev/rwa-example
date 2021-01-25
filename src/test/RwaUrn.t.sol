@@ -36,7 +36,20 @@ contract RwaUltimateRecipient {
     }
 }
 
-contract RwaUser {
+contract TryCaller {
+    function try_call(address addr, bytes calldata data) external returns (bool) {
+        bytes memory _data = data;
+        assembly {
+            let ok := call(gas(), addr, 0, add(_data, 0x20), mload(_data), 0, 0)
+            let free := mload(0x40)
+            mstore(free, ok)
+            mstore(0x40, add(free, 32))
+            revert(free, 32)
+        }
+    }
+}
+
+contract RwaUser is TryCaller {
     RwaUrn urn;
     RwaRoutingConduit outC;
     RwaConduit inC;
@@ -65,9 +78,42 @@ contract RwaUser {
     function wipe(uint256 wad) public {
         urn.wipe(wad);
     }
+    function can_pick(address who) public returns (bool) {
+        string memory sig = "pick(address)";
+        bytes memory data = abi.encodeWithSignature(sig, who);
+
+        bytes memory can_call = abi.encodeWithSignature("try_call(address,bytes)", address(outC), data);
+        (bool ok, bytes memory success) = address(this).call(can_call);
+
+        ok = abi.decode(success, (bool));
+        if (ok) return true;
+    }
+    function can_draw(uint256 wad) public returns (bool) {
+        string memory sig = "draw(uint256)";
+        bytes memory data = abi.encodeWithSignature(sig, wad);
+
+        bytes memory can_call = abi.encodeWithSignature("try_call(address,bytes)", address(urn), data);
+        (bool ok, bytes memory success) = address(this).call(can_call);
+
+        ok = abi.decode(success, (bool));
+        if (ok) return true;
+    }
 }
 
-contract RwaExampleTest is DSTest, DSMath {
+contract TryPusher is TryCaller {
+    function can_push(address wat) public returns (bool) {
+        string memory sig = "push()";
+        bytes memory data = abi.encodeWithSignature(sig);
+
+        bytes memory can_call = abi.encodeWithSignature("try_call(address,bytes)", wat, data);
+        (bool ok, bytes memory success) = address(this).call(can_call);
+
+        ok = abi.decode(success, (bool));
+        if (ok) return true;
+    }
+}
+
+contract RwaExampleTest is DSTest, DSMath, TryPusher {
     Hevm hevm;
 
     DSToken gov;
@@ -189,6 +235,31 @@ contract RwaExampleTest is DSTest, DSMath {
         usr.approve(rwa, address(urn), uint(-1));
     }
 
+    function test_unpick_and_pick_new_rec() public {
+        // unpick current rec
+        usr.pick(address(0));
+
+        usr.lock(1 ether);
+        usr.draw(400 ether);
+
+        // dai can't move
+        assertTrue(!can_push(address(outConduit)));
+
+        // deploy and whitelist new rec
+        RwaUltimateRecipient newrec = new RwaUltimateRecipient(dai);
+        outConduit.kiss(address(newrec));
+
+        usr.pick(address(newrec));
+        outConduit.push();
+
+        assertEq(dai.balanceOf(address(newrec)), 400 ether);
+    }
+
+    function test_cant_pick_unkissed_rec() public {
+        RwaUltimateRecipient newrec = new RwaUltimateRecipient(dai);
+        assertTrue(!usr.can_pick(address(newrec)));
+    }
+
     function test_lock_and_draw() public {
         usr.lock(1 ether);
         usr.draw(400 ether);
@@ -196,6 +267,18 @@ contract RwaExampleTest is DSTest, DSMath {
 
         outConduit.push();
         assertEq(dai.balanceOf(address(rec)), 400 ether);
+    }
+
+    function test_cant_draw_too_much() public {
+        usr.lock(1 ether);
+        assertTrue(!usr.can_draw(500 ether));
+    }
+
+    function test_cant_draw_as_rando() public {
+        usr.lock(1 ether);
+
+        RwaUser rando = new RwaUser(urn, outConduit, inConduit);
+        assertTrue(!rando.can_draw(100 ether));
     }
 
     function test_partial_repay() public {
@@ -209,6 +292,28 @@ contract RwaExampleTest is DSTest, DSMath {
 
         inConduit.push();
         usr.wipe(100 ether);
+
+        (, uint art) = vat.urns("acme", address(urn));
+        assertEq(art, 300 ether);
+        assertEq(dai.balanceOf(address(inConduit)), 0 ether);
+    }
+
+    function test_full_repay() public {
+        usr.lock(1 ether);
+        usr.draw(400 ether);
+
+        outConduit.push();
+
+        rec.transfer(address(inConduit), 400 ether);
+
+        inConduit.push();
+        usr.wipe(400 ether);
+        usr.free(1 ether);
+
+        (uint ink, uint art) = vat.urns("acme", address(urn));
+        assertEq(art, 0);
+        assertEq(ink, 0);
+        assertEq(rwa.balanceOf(address(usr)), 1 ether);
     }
 
     function test_oracle_cure() public {
