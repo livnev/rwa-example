@@ -1,5 +1,6 @@
 pragma solidity >=0.5.12;
 
+import "lib/dss-interfaces/src/dss/VatAbstract.sol";
 import 'ds-value/value.sol';
 
 contract RwaLiquidationOracle {
@@ -18,6 +19,7 @@ contract RwaLiquidationOracle {
         _;
     }
 
+    VatAbstract public vat;
     struct Ilk {
         bytes32 doc;
         address pip;
@@ -34,7 +36,8 @@ contract RwaLiquidationOracle {
     event Cure(bytes32 ilk);
     event Cull(bytes32 ilk);
 
-    constructor() public {
+    constructor(address vat_) public {
+        vat = VatAbstract(vat_);
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
@@ -61,6 +64,9 @@ contract RwaLiquidationOracle {
     }
     // --- liquidation ---
     function tell(bytes32 ilk) external auth {
+        (,,,uint256 line,) = vat.ilks(ilk);
+        // DC must be set to zero first
+        require(line == 0);
         require(ilks[ilk].pip != address(0));
         ilks[ilk].toc = uint48(now);
         emit Tell(ilk);
@@ -73,7 +79,7 @@ contract RwaLiquidationOracle {
     // --- write-off ---
     function cull(bytes32 ilk) external auth {
         require(ilks[ilk].tau != 0 && ilks[ilk].toc + ilks[ilk].tau >= now);
-        DSValue(ilks[ilk].pip).poke(bytes32(0));
+        DSValue(ilks[ilk].pip).poke(bytes32(uint256(1)));
         emit Cull(ilk);
     }
 

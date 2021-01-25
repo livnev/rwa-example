@@ -53,7 +53,7 @@ seth send "${RWA_FLIPPER}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_FLIPPER}" 'deny(address)' "${ETH_FROM}"
 
 # price it
-RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle)
+RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle "${MCD_VAT}")
 seth send "${RWA_LIQUIDATION_ORACLE}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_LIQUIDATION_ORACLE}" 'deny(address)' "${ETH_FROM}"
 

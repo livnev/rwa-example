@@ -7,9 +7,9 @@ import "ds-value/value.sol";
 import "ds-math/math.sol";
 import "ds-test/test.sol";
 import "lib/dss-interfaces/src/Interfaces.sol";
-import "./test/rates.sol";
+import "./rates.sol";
 
-import {RwaSpell, SpellAction} from "./RwaSpell.sol";
+import {RwaSpell, SpellAction} from "../RwaSpell.sol";
 
 interface Hevm {
     function warp(uint256) external;
