@@ -7,7 +7,7 @@ contract RwaConduit {
     DSTokenAbstract public dai;
     address public to;
 
-    event Push(address to, uint256 wad);
+    event Push(address indexed to, uint256 wad);
 
     constructor(address _gov, address _dai, address _to) public {
         gov = DSTokenAbstract(_gov);
@@ -58,14 +58,14 @@ contract RwaRoutingConduit {
     mapping (address => uint256) public bud;
 
     // Events
-    event Rely(address usr);
-    event Deny(address usr);
-    event Hope(address usr);
-    event Nope(address usr);
-    event Kiss(address who);
-    event Diss(address who);
-    event Pick(address who);
-    event Push(address to, uint256 wad);
+    event Rely(address indexed usr);
+    event Deny(address indexed usr);
+    event Hope(address indexed usr);
+    event Nope(address indexed usr);
+    event Kiss(address indexed who);
+    event Diss(address indexed who);
+    event Pick(address indexed who);
+    event Push(address indexed to, uint256 wad);
 
     constructor(address _gov, address _dai) public {
         wards[msg.sender] = 1;
