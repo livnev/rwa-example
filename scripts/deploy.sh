@@ -12,7 +12,6 @@ OPERATOR="0xD23beB204328D7337e3d2Fb9F150501fDC633B0e"
 TRUST1="0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711"
 TRUST2="0xDA0111100cb6080b43926253AB88bE719C60Be13"
 ILK_ENCODED=$(seth --to-bytes32 "$(seth --from-ascii ${ILK})")
-PRICE=$(seth --to-uint256 "$(seth --to-wei 100000000 ether)")
 
 # build it
 dapp --use solc:0.5.12 build
@@ -63,7 +62,6 @@ echo "TRUST1: ${TRUST1}"
 echo "TRUST2: ${TRUST2}"
 echo "ILK: ${ILK}"
 echo "${SYMBOL}: ${RWA_TOKEN}"
-echo "PIP_${SYMBOL}: ${RWA_PIP}"
 echo "MCD_JOIN_${SYMBOL}_${LETTER}: ${RWA_JOIN}"
 echo "MCD_FLIP_${SYMBOL}_${LETTER}: ${RWA_FLIPPER}"
 echo "${SYMBOL}_${LETTER}_URN: ${RWA_URN}"
