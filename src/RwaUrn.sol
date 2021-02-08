@@ -41,11 +41,11 @@ contract RwaUrn {
     address public fbo;              // routing conduit
 
     // Events
-    event Rely(address usr);
-    event Deny(address usr);
-    event Hope(address usr);
-    event Nope(address usr);
-    event File(bytes32 what, address data);
+    event Rely(address indexed usr);
+    event Deny(address indexed usr);
+    event Hope(address indexed usr);
+    event Nope(address indexed usr);
+    event File(bytes32 indexed what, address data);
     event Lock(uint256 wad);
     event Free(uint256 wad);
     event Draw(uint256 wad);
