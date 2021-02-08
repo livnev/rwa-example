@@ -15,7 +15,7 @@ ILK_ENCODED=$(seth --to-bytes32 "$(seth --from-ascii ${ILK})")
 PRICE=$(seth --to-uint256 "$(seth --to-wei 100000000 ether)")
 
 # build it
-SOLC_FLAGS="--optimize --optimize-runs=1" dapp --use solc:0.5.12 build
+dapp --use solc:0.5.12 build
 
 # tokenize it
 RWA_TOKEN=$(dapp create RwaToken)
