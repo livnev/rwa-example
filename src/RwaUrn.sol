@@ -88,8 +88,7 @@ contract RwaUrn {
     }
     function free(uint256 wad) external operator {
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), -int(wad), 0);
-        gemJoin.exit(address(this), wad);
-        DSTokenAbstract(gemJoin.gem()).transfer(msg.sender, wad);
+        gemJoin.exit(msg.sender, wad);
         emit Free(wad);
     }
     function draw(uint256 wad) external operator {
