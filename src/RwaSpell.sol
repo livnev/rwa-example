@@ -26,7 +26,7 @@ interface RwaLiquidationLike {
     function good(bytes32) external view;
 }
 
-interface RwaConduitLike {
+interface RwaRoutingConduitLike {
     function wards(address) external returns (uint256);
     function can(address) external returns (uint256);
     function rely(address) external;
@@ -38,6 +38,10 @@ interface RwaConduitLike {
     function diss(address) external;
     function pick(address) external;
     function push() external;
+}
+
+interface RwaUrnLike {
+    function hope(address) external:
 }
 
 contract SpellAction {
@@ -69,6 +73,7 @@ contract SpellAction {
         RWA001_A_CONDUIT_OUT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
         RWA001_LIQUIDATION_ORACLE: 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61
     */
+    address constant RWA001_OPERATOR           = 0xF00DBabEf00DbAbEF00DbabEF00DBABef00dbAbE;
     address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
     address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
     address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
@@ -179,6 +184,13 @@ contract SpellAction {
         // TODO: add to deploy scripts and remove
         // give the urn permissions on the join adapter
         GemJoinAbstract(MCD_JOIN_RWA001_A).rely(RWA001_A_URN);
+
+        // set up the urn
+        RwaUrnLike(RWA001_A_URN).hope(RWA001_OPERATOR);
+
+        // set up out conduit
+        RwaRoutingConduitLike(RWA001_A_CONDUIT_OUT).hope(RWA001_OPERATOR);
+        // could potentially kiss some BD addresses if they are available
     }
 }
 

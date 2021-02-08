@@ -22,10 +22,10 @@ seth send "${RWA_TOKEN}" 'transfer(address,uint256)' "$OPERATOR" $(seth --to-wei
 
 # route it
 RWA_CONDUIT_OUT=$(dapp create RwaRoutingConduit "${MCD_GOV}" "${MCD_DAI}")
-seth send "${RWA_CONDUIT_OUT}" 'hope(address)' "${OPERATOR}"
+seth send "${RWA_CONDUIT_OUT}" 'rely(address)' "${MCD_PAUSE_PROXY}"
+# may remove the following 2 lines
 seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST1}"
 seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST2}"
-seth send "${RWA_CONDUIT_OUT}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_CONDUIT_OUT}" 'deny(address)' "${ETH_FROM}"
 
 # join it
@@ -34,7 +34,6 @@ seth send "${RWA_JOIN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 
 # urn it
 RWA_URN=$(dapp create RwaUrn "${MCD_VAT}" "${RWA_JOIN}" "${MCD_JOIN_DAI}" "${RWA_CONDUIT_OUT}")
-seth send "${RWA_URN}" 'hope(address)' "${OPERATOR}"
 seth send "${RWA_URN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_URN}" 'deny(address)' "${ETH_FROM}"
 
