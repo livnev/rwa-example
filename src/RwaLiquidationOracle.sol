@@ -19,12 +19,17 @@ contract RwaLiquidationOracle {
         _;
     }
 
+    // --- math ---
+    function add(uint48 x, uint48 y) internal pure returns (uint48 z) {
+        require((z = x + y) >= x);
+    }
+
     VatAbstract public vat;
     struct Ilk {
-        bytes32 doc;
-        address pip;
-        uint48  tau;
-        uint48  toc;
+        bytes32 doc; // hash of borrower's agreement with MakerDAO
+        address pip; // DSValue tracking nominal loan value
+        uint48  tau; // pre-agreed remediation period
+        uint48  toc; // timestamp when liquidation initiated
     }
     mapping (bytes32 => Ilk) public ilks;
 
@@ -68,7 +73,7 @@ contract RwaLiquidationOracle {
         // DC must be set to zero first
         require(line == 0);
         require(ilks[ilk].pip != address(0));
-        ilks[ilk].toc = uint48(now);
+        ilks[ilk].toc = uint48(block.timestamp);
         emit Tell(ilk);
     }
     // --- remediation ---
@@ -78,14 +83,15 @@ contract RwaLiquidationOracle {
     }
     // --- write-off ---
     function cull(bytes32 ilk) external auth {
-        require(ilks[ilk].tau != 0 && ilks[ilk].toc + ilks[ilk].tau >= now);
+        require(add(ilks[ilk].toc, ilks[ilk].tau) >= block.timestamp);
         DSValue(ilks[ilk].pip).poke(bytes32(uint256(1)));
         emit Cull(ilk);
     }
 
     // --- liquidation check ---
+    // to be called by off-chain parties (e.g. a trustee) to check the standing of the loan
     function good(bytes32 ilk) external view returns (bool) {
         require(ilks[ilk].pip != address(0));
-        return (ilks[ilk].toc == 0 || ilks[ilk].toc + ilks[ilk].tau < now);
+        return (ilks[ilk].toc == 0 || add(ilks[ilk].toc, ilks[ilk].tau) < block.timestamp);
     }
 }
