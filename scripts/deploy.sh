@@ -21,19 +21,19 @@ RWA_TOKEN=$(dapp create RwaToken)
 seth send "${RWA_TOKEN}" 'transfer(address,uint256)' "$OPERATOR" $(seth --to-wei 1.0 ether)
 
 # route it
-RWA_ROUTING_CONDUIT=$(dapp create RwaRoutingConduit "${MCD_GOV}" "${MCD_DAI}")
-seth send "${RWA_ROUTING_CONDUIT}" 'hope(address)' "${OPERATOR}"
-seth send "${RWA_ROUTING_CONDUIT}" 'kiss(address)' "${TRUST1}"
-seth send "${RWA_ROUTING_CONDUIT}" 'kiss(address)' "${TRUST2}"
-seth send "${RWA_ROUTING_CONDUIT}" 'rely(address)' "${MCD_PAUSE_PROXY}"
-seth send "${RWA_ROUTING_CONDUIT}" 'deny(address)' "${ETH_FROM}"
+RWA_CONDUIT_OUT=$(dapp create RwaRoutingConduit "${MCD_GOV}" "${MCD_DAI}")
+seth send "${RWA_CONDUIT_OUT}" 'hope(address)' "${OPERATOR}"
+seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST1}"
+seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST2}"
+seth send "${RWA_CONDUIT_OUT}" 'rely(address)' "${MCD_PAUSE_PROXY}"
+seth send "${RWA_CONDUIT_OUT}" 'deny(address)' "${ETH_FROM}"
 
 # join it
 RWA_JOIN=$(dapp create AuthGemJoin "${MCD_VAT}" "${ILK_ENCODED}" "${RWA_TOKEN}")
 seth send "${RWA_JOIN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 
 # urn it
-RWA_URN=$(dapp create RwaUrn "${MCD_VAT}" "${RWA_JOIN}" "${MCD_JOIN_DAI}" "${RWA_ROUTING_CONDUIT}")
+RWA_URN=$(dapp create RwaUrn "${MCD_VAT}" "${RWA_JOIN}" "${MCD_JOIN_DAI}" "${RWA_CONDUIT_OUT}")
 seth send "${RWA_URN}" 'hope(address)' "${OPERATOR}"
 seth send "${RWA_URN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_URN}" 'deny(address)' "${ETH_FROM}"
@@ -45,7 +45,7 @@ seth send "${RWA_JOIN}" 'rely(address)' "${RWA_URN}"
 seth send "${RWA_JOIN}" 'deny(address)' "${ETH_FROM}"
 
 # connect it
-RWA_CONDUIT=$(dapp create RwaConduit "${MCD_GOV}" "${MCD_DAI}" "${RWA_URN}")
+RWA_CONDUIT_IN=$(dapp create RwaConduit "${MCD_GOV}" "${MCD_DAI}" "${RWA_URN}")
 
 # flip it
 RWA_FLIPPER=$(dapp create RwaFlipper "${MCD_VAT}" "${MCD_CAT}" "${ILK_ENCODED}")
@@ -66,8 +66,8 @@ echo "${SYMBOL}: ${RWA_TOKEN}"
 echo "MCD_JOIN_${SYMBOL}_${LETTER}: ${RWA_JOIN}"
 echo "MCD_FLIP_${SYMBOL}_${LETTER}: ${RWA_FLIPPER}"
 echo "${SYMBOL}_${LETTER}_URN: ${RWA_URN}"
-echo "${SYMBOL}_${LETTER}_CONDUIT: ${RWA_CONDUIT}"
-echo "${SYMBOL}_${LETTER}_ROUTING_CONDUIT: ${RWA_ROUTING_CONDUIT}"
+echo "${SYMBOL}_${LETTER}_CONDUIT_IN: ${RWA_CONDUIT_IN}"
+echo "${SYMBOL}_${LETTER}_CONDUIT_OUT: ${RWA_CONDUIT_OUT}"
 echo "${SYMBOL}_LIQUIDATION_ORACLE: ${RWA_LIQUIDATION_ORACLE}"
 
 # technologic
