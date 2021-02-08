@@ -29,12 +29,12 @@ contract RwaLiquidationOracle {
     mapping (bytes32 => Ilk) public ilks;
 
     // Events
-    event Rely(address usr);
-    event Deny(address usr);
-    event Init(bytes32 ilk, uint256 val, bytes32 doc, uint48 tau);
-    event Tell(bytes32 ilk);
-    event Cure(bytes32 ilk);
-    event Cull(bytes32 ilk);
+    event Rely(address indexed usr);
+    event Deny(address indexed usr);
+    event Init(bytes32 indexed ilk, uint256 val, bytes32 doc, uint48 tau);
+    event Tell(bytes32 indexed ilk);
+    event Cure(bytes32 indexed ilk);
+    event Cull(bytes32 indexed ilk);
 
     constructor(address vat_) public {
         vat = VatAbstract(vat_);
