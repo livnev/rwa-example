@@ -80,6 +80,7 @@ contract RwaUrn {
     // --- cdp operation ---
     // n.b. DAI can only go to fbo
     function lock(uint256 wad) external operator {
+        require(wad <= 2**255 - 1, "RwaUrn/overflow");
         DSTokenAbstract(gemJoin.gem()).transferFrom(msg.sender, address(this), wad);
         // join with address this
         gemJoin.join(address(this), wad);
@@ -87,16 +88,19 @@ contract RwaUrn {
         emit Lock(wad);
     }
     function free(uint256 wad) external operator {
+        require(wad <= 2**255, "RwaUrn/overflow");
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), -int(wad), 0);
         gemJoin.exit(msg.sender, wad);
         emit Free(wad);
     }
     function draw(uint256 wad) external operator {
+        require(wad <= 2**255 - 1, "RwaUrn/overflow");
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, int(wad));
         daiJoin.exit(fbo, wad);
         emit Draw(wad);
     }
     function wipe(uint256 wad) external operator {
+        require(wad <= 2**255, "RwaUrn/overflow");
         daiJoin.join(address(this), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, -int(wad));
         emit Wipe(wad);
