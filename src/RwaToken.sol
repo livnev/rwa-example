@@ -14,6 +14,7 @@ contract RwaToken {
     event Transfer(address indexed src, address indexed dst, uint256 wad);
 
     // --- Math ---
+    uint256 constant WAD = 10 ** 18;
     function add(uint256 x, uint256 y) internal pure returns (uint256 z) {
         require((z = x + y) >= x);
     }
@@ -22,8 +23,8 @@ contract RwaToken {
     }
 
     constructor() public {
-        balanceOf[msg.sender] = 1 ether;
-        totalSupply = 1 ether;
+        balanceOf[msg.sender] = 1 * WAD;
+        totalSupply = 1 * WAD;
     }
 
     // --- Token ---
