@@ -110,6 +110,7 @@ contract RwaLiquidationOracle {
     }
     function bite(bytes32 ilk, address urn) external {
         require(vat.live() == 1, "Vat/not-live");
+        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/not-Rwa-asset");
 
         (uint256 ink, uint256 art) = vat.urns(ilk, urn);
         (,uint256 rate,uint256 spot,,) = vat.ilks(ilk);
