@@ -53,7 +53,7 @@ interface RwaLiquidationLike {
     function init(bytes32, bytes32, address, uint48) external;
     function tell(bytes32) external;
     function cure(bytes32) external;
-    function cull(bytes32) external;
+    function cull(bytes32, address) external;
     function good(bytes32) external view returns (bool);
 }
 
@@ -152,11 +152,12 @@ contract CullSpellAction {
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     bytes32 constant ilk = "RWA001-A";
+    address constant urn = 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316;
 
     function execute() public {
         RwaLiquidationLike(
             CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
-        ).cull(ilk);
+        ).cull(ilk, urn);
     }
 }
 
