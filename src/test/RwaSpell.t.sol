@@ -360,7 +360,6 @@ contract DssSpellTest is DSTest, DSMath {
         RWA001: 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE
         PIP_RWA001: 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86
         MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
-        MCD_FLIP_RWA001_A: 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9
         RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
         RWA001_A_CONDUIT_IN: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
         RWA001_A_CONDUIT_OUT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
@@ -369,7 +368,6 @@ contract DssSpellTest is DSTest, DSMath {
     address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
     address constant PIP_RWA001                = 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86;
     address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
-    address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
     address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
     address constant RWA001_A_CONDUIT_IN       = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
     address constant RWA001_A_CONDUIT_OUT      = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
@@ -377,7 +375,6 @@ contract DssSpellTest is DSTest, DSMath {
 
     DSTokenAbstract constant rwagem    = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin   = GemJoinAbstract(MCD_JOIN_RWA001_A);
-    FlipAbstract constant rwaflip      = FlipAbstract(MCD_FLIP_RWA001_A);
     RwaLiquidationLike constant oracle = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
     RwaUrnLike constant rwaurn         = RwaUrnLike(RWA001_A_URN);
     RwaRoutingConduitLike constant rwaconduitin  = RwaRoutingConduitLike(RWA001_A_CONDUIT_IN);

@@ -38,8 +38,12 @@ contract RwaLiquidationOracle {
     function add(uint48 x, uint48 y) internal pure returns (uint48 z) {
         require((z = x + y) >= x);
     }
+    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require(y == 0 || (z = x * y) / y == x);
+    }
 
     VatAbstract public vat;
+    address     public vow;
     struct Ilk {
         bytes32 doc; // hash of borrower's agreement with MakerDAO
         address pip; // DSValue tracking nominal loan value
@@ -55,9 +59,11 @@ contract RwaLiquidationOracle {
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
     event Cull(bytes32 indexed ilk);
+    event Bite(bytes32 indexed ilk, address indexed urn);
 
-    constructor(address vat_) public {
+    constructor(address vat_, address vow_) public {
         vat = VatAbstract(vat_);
+        vow = vow_;
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
@@ -99,8 +105,26 @@ contract RwaLiquidationOracle {
     // --- write-off ---
     function cull(bytes32 ilk) external auth {
         require(add(ilks[ilk].toc, ilks[ilk].tau) >= block.timestamp);
-        DSValue(ilks[ilk].pip).poke(bytes32(uint256(1)));
+        DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
         emit Cull(ilk);
+    }
+    function bite(bytes32 ilk, address urn) external {
+        require(vat.live() == 1, "Vat/not-live");
+
+        (uint256 ink, uint256 art) = vat.urns(ilk, urn);
+        (,uint256 rate,uint256 spot,,) = vat.ilks(ilk);
+        require(mul(ink, spot) < mul(art, rate), "RwaLiquidationOracle/not-unsafe");
+
+        require(ink <= 2 ** 255, "RwaLiquidationOracle/overflow");
+        require(art <= 2 ** 255, "RwaLiquidationOracle/overflow");
+
+        vat.grab(ilk,
+                 address(urn),
+                 address(urn),
+                 address(vow),
+                 -int256(ink),
+                 -int256(art));
+        emit Bite(ilk, urn);
     }
 
     // --- liquidation check ---

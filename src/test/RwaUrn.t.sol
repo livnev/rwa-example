@@ -17,7 +17,6 @@ import {AuthGemJoin} from "dss-gem-joins/join-auth.sol";
 
 import {RwaToken} from "../RwaToken.sol";
 import {RwaConduit, RwaRoutingConduit} from "../RwaConduit.sol";
-import {RwaFlipper} from "../RwaFlipper.sol";
 import {RwaLiquidationOracle} from "../RwaLiquidationOracle.sol";
 import {RwaUrn} from "../RwaUrn.sol";
 
@@ -131,7 +130,6 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     DaiJoin daiJoin;
     AuthGemJoin gemJoin;
 
-    RwaFlipper flip;
     RwaLiquidationOracle oracle;
     RwaUrn urn;
 
@@ -190,22 +188,18 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         vat.file("Line", 100 * rad(ceiling));
         vat.file("acme", "line", rad(ceiling));
 
-        oracle = new RwaLiquidationOracle(address(vat));
+        oracle = new RwaLiquidationOracle(address(vat), address(vow));
         oracle.init(
             "acme",
             wmul(ceiling, 1.1 ether),
             doc,
             2 weeks);
+        vat.rely(address(oracle));
         (,address pip,,) = oracle.ilks("acme");
 
         spot.file("acme", "mat", RAY);
         spot.file("acme", "pip", pip);
         spot.poke("acme");
-
-        flip = new RwaFlipper(address(vat), address(cat), "acme");
-        flip.rely(address(cat));
-        cat.file("acme", "flip", address(flip));
-        cat.rely(address(flip));
 
         gemJoin = new AuthGemJoin(address(vat), "acme", address(rwa));
         vat.rely(address(gemJoin));
@@ -338,7 +332,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(dai.balanceOf(address(rec)), 100 ether);
     }
 
-    function test_oracle_cull_and_flip() public {
+    function test_oracle_cull() public {
         usr.lock(1 ether);
         // not at full utilisation
         usr.draw(200 ether);
@@ -358,7 +352,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertTrue(! oracle.good("acme"));
         assertTrue(! usr.can_draw(10 ether));
 
-        cat.bite("acme", address(urn));
+        oracle.bite("acme", address(urn));
 
         (uint ink, uint art) = vat.urns("acme", address(urn));
         assertEq(ink, 0);

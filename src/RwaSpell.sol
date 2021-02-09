@@ -8,7 +8,6 @@ import "lib/dss-interfaces/src/dss/EndAbstract.sol";
 import "lib/dss-interfaces/src/dss/SpotAbstract.sol";
 import "lib/dss-interfaces/src/dss/GemJoinAbstract.sol";
 import "lib/dss-interfaces/src/dss/DaiJoinAbstract.sol";
-import "lib/dss-interfaces/src/dss/FlipAbstract.sol";
 import "lib/dss-interfaces/src/dapp/DSTokenAbstract.sol";
 import "lib/dss-interfaces/src/dss/IlkRegistryAbstract.sol";
 import "lib/dss-interfaces/src/dss/ChainlogAbstract.sol";
@@ -41,7 +40,7 @@ interface RwaRoutingConduitLike {
 }
 
 interface RwaUrnLike {
-    function hope(address) external:
+    function hope(address) external;
 }
 
 contract SpellAction {
@@ -67,7 +66,6 @@ contract SpellAction {
         ILK: RWA001-A
         RWA001: 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE
         MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
-        MCD_FLIP_RWA001_A: 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9
         RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
         RWA001_A_CONDUIT_IN: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
         RWA001_A_CONDUIT_OUT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
@@ -76,7 +74,6 @@ contract SpellAction {
     address constant RWA001_OPERATOR           = 0xF00DBabEf00DbAbEF00DbabEF00DBABef00dbAbE;
     address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
     address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
-    address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
     address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
     address constant RWA001_A_CONDUIT_IN       = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
     address constant RWA001_A_CONDUIT_OUT      = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
@@ -103,7 +100,6 @@ contract SpellAction {
         // add RWA-001 contract to the changelog
         CHANGELOG.setAddress("RWA001", RWA001_GEM);
         CHANGELOG.setAddress("MCD_JOIN_RWA001_A", MCD_JOIN_RWA001_A);
-        CHANGELOG.setAddress("MCD_FLIP_RWA001_A", MCD_FLIP_RWA001_A);
         CHANGELOG.setAddress("RWA001_LIQUIDATION_ORACLE", RWA001_LIQUIDATION_ORACLE);
         CHANGELOG.setAddress("RWA001_A_URN", RWA001_A_URN);
         CHANGELOG.setAddress("RWA001_A_CONDUIT_IN", RWA001_A_CONDUIT_IN);
@@ -114,8 +110,6 @@ contract SpellAction {
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).ilk() == ilk, "join-ilk-not-match");
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).gem() == RWA001_GEM, "join-gem-not-match");
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).dec() == DSTokenAbstract(RWA001_GEM).decimals(), "join-dec-not-match");
-        require(FlipAbstract(MCD_FLIP_RWA001_A).vat()    == MCD_VAT, "flip-vat-not-match");
-        require(FlipAbstract(MCD_FLIP_RWA001_A).ilk()    == ilk, "flip-ilk-not-match");
 
         // DOC hash (TODO)
         bytes32 doc = "doc";
@@ -132,9 +126,6 @@ contract SpellAction {
         // Set price feed for RWA001
         SpotAbstract(MCD_SPOT).file(ilk, "pip", pip);
 
-        // Set the RWA-001 flipper in the cat
-        CatAbstract(MCD_CAT).file(ilk, "flip", MCD_FLIP_RWA001_A);
-
         // Init RWA-001 in Vat
         VatAbstract(MCD_VAT).init(ilk);
         // Init RWA-001 in Jug
@@ -143,14 +134,8 @@ contract SpellAction {
         // Allow RWA-001 Join to modify Vat registry
         VatAbstract(MCD_VAT).rely(MCD_JOIN_RWA001_A);
 
-        // Allow RWA-001 Flipper on the Cat
-        CatAbstract(MCD_CAT).rely(MCD_FLIP_RWA001_A);
-
-        // Allow cat to kick auctions in RWA-001 Flipper
-        FlipAbstract(MCD_FLIP_RWA001_A).rely(MCD_CAT);
-
-        // Allow End to yank auctions in RWA-001 Flipper
-        // FlipAbstract(MCD_FLIP_RWA001_A).rely(MCD_END);
+        // Allow RwaLiquidationOracle to modify Vat registry
+        VatAbstract(MCD_VAT).rely(RWA001_LIQUIDATION_ORACLE);
 
         // 1000 debt ceiling
         VatAbstract(MCD_VAT).file(ilk, "line", RWA001_A_INITIAL_DC);
@@ -167,19 +152,11 @@ contract SpellAction {
         // 6% stability fee TODO ask matt
         JugAbstract(MCD_JUG).file(ilk, "duty", SIX_PCT_RATE);
 
-        // NOTE: nothing to file on the flipper
-        // FlipAbstract(MCD_FLIP_RWA001_A).file("beg" , 103 * WAD / 100);
-        // FlipAbstract(MCD_FLIP_RWA001_A).file("ttl" , 6 hours);
-        // FlipAbstract(MCD_FLIP_RWA001_A).file("tau" , 6 hours);
-
         // collateralization ratio 100%
         SpotAbstract(MCD_SPOT).file(ilk, "mat", RAY);
 
         // poke the spotter to pull in a price
         SpotAbstract(MCD_SPOT).poke(ilk);
-
-        // ilk registry
-        IlkRegistryAbstract(ILK_REGISTRY).add(MCD_JOIN_RWA001_A);
 
         // TODO: add to deploy scripts and remove
         // give the urn permissions on the join adapter

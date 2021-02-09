@@ -46,13 +46,8 @@ seth send "${RWA_JOIN}" 'deny(address)' "${ETH_FROM}"
 # connect it
 RWA_CONDUIT_IN=$(dapp create RwaConduit "${MCD_GOV}" "${MCD_DAI}" "${RWA_URN}")
 
-# flip it
-RWA_FLIPPER=$(dapp create RwaFlipper "${MCD_VAT}" "${MCD_CAT}" "${ILK_ENCODED}")
-seth send "${RWA_FLIPPER}" 'rely(address)' "${MCD_PAUSE_PROXY}"
-seth send "${RWA_FLIPPER}" 'deny(address)' "${ETH_FROM}"
-
 # price it
-RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle "${MCD_VAT}")
+RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle "${MCD_VAT}" "${MCD_VOW}")
 seth send "${RWA_LIQUIDATION_ORACLE}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_LIQUIDATION_ORACLE}" 'deny(address)' "${ETH_FROM}"
 
@@ -63,7 +58,6 @@ echo "TRUST2: ${TRUST2}"
 echo "ILK: ${ILK}"
 echo "${SYMBOL}: ${RWA_TOKEN}"
 echo "MCD_JOIN_${SYMBOL}_${LETTER}: ${RWA_JOIN}"
-echo "MCD_FLIP_${SYMBOL}_${LETTER}: ${RWA_FLIPPER}"
 echo "${SYMBOL}_${LETTER}_URN: ${RWA_URN}"
 echo "${SYMBOL}_${LETTER}_CONDUIT_IN: ${RWA_CONDUIT_IN}"
 echo "${SYMBOL}_${LETTER}_CONDUIT_OUT: ${RWA_CONDUIT_OUT}"
