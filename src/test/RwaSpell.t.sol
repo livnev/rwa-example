@@ -247,6 +247,7 @@ contract TellSpellAction {
     bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
+        VatAbstract(CHANGELOG.getAddress("MCD_VAT")).file(ilk, "line", 0);
         RwaLiquidationLike(
             CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
         ).tell(ilk);
