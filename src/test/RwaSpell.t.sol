@@ -18,7 +18,7 @@ interface Hevm {
 
 pragma solidity >=0.5.12;
 
-interface RwaRoutingLike {
+interface RwaRoutingConduitLike {
     function wards(address) external returns (uint);
     function can(address) external returns (uint);
     function rely(address) external;
@@ -362,8 +362,8 @@ contract DssSpellTest is DSTest, DSMath {
         MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
         MCD_FLIP_RWA001_A: 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9
         RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
-        RWA001_A_CONDUIT: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
-        RWA001_A_ROUTING_CONDUIT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
+        RWA001_A_CONDUIT_IN: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
+        RWA001_A_CONDUIT_OUT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
         RWA001_LIQUIDATION_ORACLE: 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61
     */
     address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
@@ -371,8 +371,8 @@ contract DssSpellTest is DSTest, DSMath {
     address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
     address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
     address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
-    address constant RWA001_A_CONDUIT          = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
-    address constant RWA001_A_ROUTING_CONDUIT  = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
+    address constant RWA001_A_CONDUIT_IN       = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
+    address constant RWA001_A_CONDUIT_OUT      = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
     address constant RWA001_LIQUIDATION_ORACLE = 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61;
 
     DSTokenAbstract constant rwagem    = DSTokenAbstract(RWA001_GEM);
@@ -380,8 +380,8 @@ contract DssSpellTest is DSTest, DSMath {
     FlipAbstract constant rwaflip      = FlipAbstract(MCD_FLIP_RWA001_A);
     RwaLiquidationLike constant oracle = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
     RwaUrnLike constant rwaurn         = RwaUrnLike(RWA001_A_URN);
-    RwaRoutingLike constant rwaconduit = RwaRoutingLike(RWA001_A_CONDUIT);
-    RwaRoutingLike constant rwarouting = RwaRoutingLike(RWA001_A_ROUTING_CONDUIT);
+    RwaRoutingConduitLike constant rwaconduitin  = RwaRoutingConduitLike(RWA001_A_CONDUIT_IN);
+    RwaRoutingConduitLike constant rwaconduitout = RwaRoutingConduitLike(RWA001_A_CONDUIT_OUT);
 
     address    makerDeployer06         = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
@@ -912,33 +912,33 @@ contract DssSpellTest is DSTest, DSMath {
         rwaurn.lock(1 * WAD);
         rwaurn.draw(1 * WAD);
 
-        assertEq(dai.balanceOf(address(rwarouting)), 1 * WAD);
+        assertEq(dai.balanceOf(address(rwaconduitout)), 1 * WAD);
 
         // wards
         hevm.store(
-            address(rwarouting),
+            address(rwaconduitout),
             keccak256(abi.encode(address(this), uint256(0))),
             bytes32(uint256(1))
         );
 
         // can
         hevm.store(
-            address(rwarouting),
+            address(rwaconduitout),
             keccak256(abi.encode(address(this), uint256(1))),
             bytes32(uint256(1))
         );
 
-        assertEq(dai.balanceOf(address(rwarouting)), 1 * WAD);
+        assertEq(dai.balanceOf(address(rwaconduitout)), 1 * WAD);
 
-        rwarouting.kiss(address(this));
-        rwarouting.pick(address(this));
+        rwaconduitout.kiss(address(this));
+        rwaconduitout.pick(address(this));
 
-        rwarouting.push();
+        rwaconduitout.push();
 
         assertEq(dai.balanceOf(address(this)), 1 * WAD);
 
-        dai.transfer(address(rwaconduit), dai.balanceOf(address(this)));
-        rwaconduit.push();
+        dai.transfer(address(rwaconduitin), dai.balanceOf(address(this)));
+        rwaconduitin.push();
 
         assertEq(dai.balanceOf(address(rwaurn)), 1 * WAD);
 
@@ -971,17 +971,17 @@ contract DssSpellTest is DSTest, DSMath {
 
     //     // fix this
     //     hevm.store(
-    //         address(rwarouting),
+    //         address(rwaconduitout),
     //         keccak256(abi.encode(address(a), uint256(4))),
     //         uint256(1)
     //     );
     //     hevm.store(
-    //         address(rwarouting),
+    //         address(rwaconduitout),
     //         keccak256(abi.encode(address(b), uint256(4))),
     //         uint256(1)
     //     );
     //     hevm.store(
-    //         address(rwarouting),
+    //         address(rwaconduitout),
     //         keccak256(abi.encode(address(c), uint256(4))),
     //         uint256(1)
     //     );

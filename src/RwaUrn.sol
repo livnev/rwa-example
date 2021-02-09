@@ -1,3 +1,18 @@
+// Copyright (C) 2020, 2021 Lev Livnev <lev@liv.nev.org.uk>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 pragma solidity 0.5.12;
 
 import "lib/dss-interfaces/src/dss/VatAbstract.sol";
@@ -41,11 +56,11 @@ contract RwaUrn {
     address public fbo;              // routing conduit
 
     // Events
-    event Rely(address usr);
-    event Deny(address usr);
-    event Hope(address usr);
-    event Nope(address usr);
-    event File(bytes32 what, address data);
+    event Rely(address indexed usr);
+    event Deny(address indexed usr);
+    event Hope(address indexed usr);
+    event Nope(address indexed usr);
+    event File(bytes32 indexed what, address data);
     event Lock(uint256 wad);
     event Free(uint256 wad);
     event Draw(uint256 wad);
@@ -78,26 +93,30 @@ contract RwaUrn {
     }
 
     // --- cdp operation ---
-    // n.b. DAI can only go to fbo
     function lock(uint256 wad) external operator {
-        DSTokenAbstract(gemJoin.gem()).transferFrom(address(msg.sender), address(this), wad);
+        require(wad <= 2**255 - 1, "RwaUrn/overflow");
+        DSTokenAbstract(gemJoin.gem()).transferFrom(msg.sender, address(this), wad);
         // join with address this
         gemJoin.join(address(this), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), int(wad), 0);
         emit Lock(wad);
     }
     function free(uint256 wad) external operator {
+        require(wad <= 2**255, "RwaUrn/overflow");
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), -int(wad), 0);
-        gemJoin.exit(address(this), wad);
-        DSTokenAbstract(gemJoin.gem()).transfer(address(msg.sender), wad);
+        gemJoin.exit(msg.sender, wad);
         emit Free(wad);
     }
+    // n.b. DAI can only go to fbo
     function draw(uint256 wad) external operator {
+        require(wad <= 2**255 - 1, "RwaUrn/overflow");
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, int(wad));
         daiJoin.exit(fbo, wad);
         emit Draw(wad);
     }
-    function wipe(uint256 wad) external operator {
+    // n.b. anyone can wipe
+    function wipe(uint256 wad) external {
+        require(wad <= 2**255, "RwaUrn/overflow");
         daiJoin.join(address(this), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, -int(wad));
         emit Wipe(wad);
