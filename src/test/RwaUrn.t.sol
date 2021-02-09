@@ -346,13 +346,11 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         hevm.warp(now + 2 weeks);
 
-        oracle.cull("acme");
-        spot.poke("acme");
+        oracle.cull("acme", address(urn));
+        // spot.poke("acme");
 
         assertTrue(! oracle.good("acme"));
         assertTrue(! usr.can_draw(10 ether));
-
-        oracle.bite("acme", address(urn));
 
         (uint ink, uint art) = vat.urns("acme", address(urn));
         assertEq(ink, 0);

@@ -58,8 +58,7 @@ contract RwaLiquidationOracle {
     event Init(bytes32 indexed ilk, uint256 val, bytes32 doc, uint48 tau);
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
-    event Cull(bytes32 indexed ilk);
-    event Bite(bytes32 indexed ilk, address indexed urn);
+    event Cull(bytes32 indexed ilk, address indexed urn);
 
     constructor(address vat_, address vow_) public {
         vat = VatAbstract(vat_);
@@ -103,19 +102,12 @@ contract RwaLiquidationOracle {
         emit Cure(ilk);
     }
     // --- write-off ---
-    function cull(bytes32 ilk) external auth {
+    function cull(bytes32 ilk, address urn) external auth {
         require(add(ilks[ilk].toc, ilks[ilk].tau) >= block.timestamp);
+
         DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
-        emit Cull(ilk);
-    }
-    function bite(bytes32 ilk, address urn) external {
-        require(vat.live() == 1, "Vat/not-live");
-        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/not-Rwa-asset");
 
         (uint256 ink, uint256 art) = vat.urns(ilk, urn);
-        (,uint256 rate,uint256 spot,,) = vat.ilks(ilk);
-        require(mul(ink, spot) < mul(art, rate), "RwaLiquidationOracle/not-unsafe");
-
         require(ink <= 2 ** 255, "RwaLiquidationOracle/overflow");
         require(art <= 2 ** 255, "RwaLiquidationOracle/overflow");
 
@@ -125,7 +117,7 @@ contract RwaLiquidationOracle {
                  address(vow),
                  -int256(ink),
                  -int256(art));
-        emit Bite(ilk, urn);
+        emit Cull(ilk, urn);
     }
 
     // --- liquidation check ---
