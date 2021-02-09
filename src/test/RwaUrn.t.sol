@@ -122,7 +122,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     Vat vat;
     Vow vow;
     Cat cat;
-    Spotter spot;
+    Spotter spotter;
 
     Flapper flap;
     Flopper flop;
@@ -160,8 +160,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // standard Vat setup
         vat = new Vat();
 
-        spot = new Spotter(address(vat));
-        vat.rely(address(spot));
+        spotter = new Spotter(address(vat));
+        vat.rely(address(spotter));
 
         flap = new Flapper(address(vat), address(gov));
         flop = new Flopper(address(vat), address(gov));
@@ -197,9 +197,9 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         vat.rely(address(oracle));
         (,address pip,,) = oracle.ilks("acme");
 
-        spot.file("acme", "mat", RAY);
-        spot.file("acme", "pip", pip);
-        spot.poke("acme");
+        spotter.file("acme", "mat", RAY);
+        spotter.file("acme", "pip", pip);
+        spotter.poke("acme");
 
         gemJoin = new AuthGemJoin(address(vat), "acme", address(rwa));
         vat.rely(address(gemJoin));
@@ -361,7 +361,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         assertEq(vat.gem("acme", address(oracle)), 1 ether);
 
-        spot.poke("acme");
+        spotter.poke("acme");
         (,,uint256 spot ,,) = vat.ilks("acme");
         assertEq(spot, 0);
     }
@@ -378,7 +378,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // increase ceiling by 200 dai
         vat.file("acme", "line", rad(ceiling + 200 ether));
         oracle.bump("acme", wmul(ceiling + 200 ether, 1.1 ether));
-        spot.poke("acme");
+        spotter.poke("acme");
 
         usr.draw(200 ether);
         outConduit.push();

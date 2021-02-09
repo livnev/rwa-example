@@ -55,6 +55,7 @@ contract RwaLiquidationOracle {
     // Events
     event Rely(address indexed usr);
     event Deny(address indexed usr);
+    event File(bytes32 indexed what, address data);
     event Init(bytes32 indexed ilk, uint256 val, bytes32 doc, uint48 tau);
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
@@ -65,6 +66,13 @@ contract RwaLiquidationOracle {
         vow = vow_;
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
+    }
+
+    // --- administration ---
+    function file(bytes32 what, address data) external auth {
+        if (what == "vow") { vow = data; }
+        else revert("RwaLiquidationOracle/unrecognised-param");
+        emit File(what, data);
     }
 
     function init(bytes32 ilk, uint256 val, bytes32 doc, uint48 tau) external auth {
