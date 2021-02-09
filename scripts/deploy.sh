@@ -2,6 +2,8 @@
 #
 # ./scripts/deploy.sh <network>
 
+set -e
+
 # shellcheck disable=SC1091
 source ./scripts/build-env-addresses.sh "$1" > /dev/null 2>&1
 

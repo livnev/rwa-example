@@ -357,21 +357,20 @@ contract DssSpellTest is DSTest, DSMath {
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE
-        PIP_RWA001: 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86
-        MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
-        RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
-        RWA001_A_CONDUIT_IN: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
-        RWA001_A_CONDUIT_OUT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
-        RWA001_LIQUIDATION_ORACLE: 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61
+        RWA001: 0x1F9D9834b25F26a92F41eE6e10b2841036a25386
+        MCD_JOIN_RWA001_A: 0xae149c840Ab8dD7f66deD0070661d614671ff314
+        RWA001_A_URN: 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316
+        RWA001_A_CONDUIT_IN: 0xBEe168a3799575a8a2eF61000C9D658Aca41E101
+        RWA001_A_CONDUIT_OUT: 0xE795E4e6598CeEb553399a3Dd6f9D40D7ACbE809
+        RWA001_LIQUIDATION_ORACLE: 0x379ED69aFfaD039c7FD1a5D2930C5DeF65ce0a28
     */
-    address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
-    address constant PIP_RWA001                = 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86;
-    address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
-    address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
-    address constant RWA001_A_CONDUIT_IN       = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
-    address constant RWA001_A_CONDUIT_OUT      = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
-    address constant RWA001_LIQUIDATION_ORACLE = 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61;
+
+    address constant RWA001_GEM                = 0x1F9D9834b25F26a92F41eE6e10b2841036a25386;
+    address constant MCD_JOIN_RWA001_A         = 0xae149c840Ab8dD7f66deD0070661d614671ff314;
+    address constant RWA001_A_URN              = 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316;
+    address constant RWA001_A_CONDUIT_IN       = 0xBEe168a3799575a8a2eF61000C9D658Aca41E101;
+    address constant RWA001_A_CONDUIT_OUT      = 0xE795E4e6598CeEb553399a3Dd6f9D40D7ACbE809;
+    address constant RWA001_LIQUIDATION_ORACLE = 0x379ED69aFfaD039c7FD1a5D2930C5DeF65ce0a28;
 
     DSTokenAbstract constant rwagem    = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin   = GemJoinAbstract(MCD_JOIN_RWA001_A);
@@ -877,7 +876,8 @@ contract DssSpellTest is DSTest, DSMath {
         hevm.warp(castTime);
         cullSpell.cast();
         assertTrue(!oracle.good("RWA001-A"));
-        assertEq(DSValueAbstract(PIP_RWA001).read(), bytes32(0));
+        (, address pip,,) = oracle.ilks("RWA001-A");
+        assertEq(DSValueAbstract(pip).read(), bytes32(0));
     }
 
     function testSpellIsCast_RWA001_OPERATOR_LOCK_DRAW_CONDUITS_WIPE_FREE() public {
