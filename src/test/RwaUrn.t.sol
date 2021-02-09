@@ -346,8 +346,9 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         hevm.warp(now + 2 weeks);
 
+        assertEq(vat.gem("acme", address(oracle)), 0);
+
         oracle.cull("acme", address(urn));
-        // spot.poke("acme");
 
         assertTrue(! oracle.good("acme"));
         assertTrue(! usr.can_draw(10 ether));
@@ -357,6 +358,12 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(art, 0);
 
         assertEq(vat.sin(address(vow)), rad(200 ether));
+
+        assertEq(vat.gem("acme", address(oracle)), 1 ether);
+
+        spot.poke("acme");
+        (,,uint256 spot ,,) = vat.ilks("acme");
+        assertEq(spot, 0);
     }
 
     function test_oracle_bump() public {

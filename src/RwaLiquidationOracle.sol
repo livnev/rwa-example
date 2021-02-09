@@ -113,7 +113,7 @@ contract RwaLiquidationOracle {
 
         vat.grab(ilk,
                  address(urn),
-                 address(urn),
+                 address(this),
                  address(vow),
                  -int256(ink),
                  -int256(art));
