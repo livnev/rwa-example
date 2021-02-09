@@ -45,7 +45,7 @@ contract RwaLiquidationOracle {
     VatAbstract public vat;
     address     public vow;
     struct Ilk {
-        bytes32 doc; // hash of borrower's agreement with MakerDAO
+        string  doc; // hash of borrower's agreement with MakerDAO
         address pip; // DSValue tracking nominal loan value
         uint48  tau; // pre-agreed remediation period
         uint48  toc; // timestamp when liquidation initiated
@@ -56,7 +56,7 @@ contract RwaLiquidationOracle {
     event Rely(address indexed usr);
     event Deny(address indexed usr);
     event File(bytes32 indexed what, address data);
-    event Init(bytes32 indexed ilk, uint256 val, bytes32 doc, uint48 tau);
+    event Init(bytes32 indexed ilk, uint256 val, string doc, uint48 tau);
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
     event Cull(bytes32 indexed ilk, address indexed urn);
@@ -75,7 +75,7 @@ contract RwaLiquidationOracle {
         emit File(what, data);
     }
 
-    function init(bytes32 ilk, uint256 val, bytes32 doc, uint48 tau) external auth {
+    function init(bytes32 ilk, uint256 val, string calldata doc, uint48 tau) external auth {
         // doc, and tau can be amended, but tau cannot decrease
         require(tau >= ilks[ilk].tau);
         ilks[ilk].doc = doc;

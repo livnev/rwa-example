@@ -141,7 +141,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
     // debt ceiling of 400 dai
     uint256 ceiling = 400 ether;
-    bytes32 doc = keccak256(abi.encode("Please sign on the dotted line."));
+    string doc = "Please sign on the dotted line.";
 
     function rad(uint wad) internal pure returns (uint) {
         return wad * 10 ** 27;

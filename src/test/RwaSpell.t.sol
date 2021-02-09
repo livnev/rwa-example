@@ -50,7 +50,7 @@ interface RwaLiquidationLike {
     function rely(address) external;
     function deny(address) external;
     function ilks(bytes32) external returns (bytes32, address, uint48, uint48);
-    function init(bytes32, bytes32, address, uint48) external;
+    function init(bytes32, uint256, string calldata, uint48) external;
     function tell(bytes32) external;
     function cure(bytes32) external;
     function cull(bytes32, address) external;
@@ -152,12 +152,11 @@ contract CullSpellAction {
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     bytes32 constant ilk = "RWA001-A";
-    address constant urn = 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316;
 
     function execute() public {
         RwaLiquidationLike(
             CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
-        ).cull(ilk, urn);
+        ).cull(ilk, CHANGELOG.getAddress("RWA001_A_URN"));
     }
 }
 
@@ -359,20 +358,20 @@ contract DssSpellTest is DSTest, DSMath {
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x1F9D9834b25F26a92F41eE6e10b2841036a25386
-        MCD_JOIN_RWA001_A: 0xae149c840Ab8dD7f66deD0070661d614671ff314
-        RWA001_A_URN: 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316
-        RWA001_A_CONDUIT_IN: 0xBEe168a3799575a8a2eF61000C9D658Aca41E101
-        RWA001_A_CONDUIT_OUT: 0xE795E4e6598CeEb553399a3Dd6f9D40D7ACbE809
-        RWA001_LIQUIDATION_ORACLE: 0x379ED69aFfaD039c7FD1a5D2930C5DeF65ce0a28
+        RWA001: 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4
+        MCD_JOIN_RWA001_A: 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74
+        RWA001_A_URN: 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151
+        RWA001_A_CONDUIT_IN: 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24
+        RWA001_A_CONDUIT_OUT: 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64
+        RWA001_LIQUIDATION_ORACLE: 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E
     */
 
-    address constant RWA001_GEM                = 0x1F9D9834b25F26a92F41eE6e10b2841036a25386;
-    address constant MCD_JOIN_RWA001_A         = 0xae149c840Ab8dD7f66deD0070661d614671ff314;
-    address constant RWA001_A_URN              = 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316;
-    address constant RWA001_A_CONDUIT_IN       = 0xBEe168a3799575a8a2eF61000C9D658Aca41E101;
-    address constant RWA001_A_CONDUIT_OUT      = 0xE795E4e6598CeEb553399a3Dd6f9D40D7ACbE809;
-    address constant RWA001_LIQUIDATION_ORACLE = 0x379ED69aFfaD039c7FD1a5D2930C5DeF65ce0a28;
+    address constant RWA001_GEM                = 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4;
+    address constant MCD_JOIN_RWA001_A         = 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74;
+    address constant RWA001_A_URN              = 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151;
+    address constant RWA001_A_CONDUIT_IN       = 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24;
+    address constant RWA001_A_CONDUIT_OUT      = 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64;
+    address constant RWA001_LIQUIDATION_ORACLE = 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E;
 
     DSTokenAbstract constant rwagem    = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin   = GemJoinAbstract(MCD_JOIN_RWA001_A);

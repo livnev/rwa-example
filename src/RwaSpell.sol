@@ -18,7 +18,7 @@ interface RwaLiquidationLike {
     function ilks(bytes32) external returns (bytes32,address,uint48,uint48);
     function rely(address) external;
     function deny(address) external;
-    function init(bytes32, uint256, bytes32, uint48) external;
+    function init(bytes32, uint256, string calldata, uint48) external;
     function tell(bytes32) external;
     function cure(bytes32) external;
     function cull(bytes32) external;
@@ -64,20 +64,21 @@ contract SpellAction {
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x1F9D9834b25F26a92F41eE6e10b2841036a25386
-        MCD_JOIN_RWA001_A: 0xae149c840Ab8dD7f66deD0070661d614671ff314
-        RWA001_A_URN: 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316
-        RWA001_A_CONDUIT_IN: 0xBEe168a3799575a8a2eF61000C9D658Aca41E101
-        RWA001_A_CONDUIT_OUT: 0xE795E4e6598CeEb553399a3Dd6f9D40D7ACbE809
-        RWA001_LIQUIDATION_ORACLE: 0x379ED69aFfaD039c7FD1a5D2930C5DeF65ce0a28
+        RWA001: 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4
+        MCD_JOIN_RWA001_A: 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74
+        RWA001_A_URN: 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151
+        RWA001_A_CONDUIT_IN: 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24
+        RWA001_A_CONDUIT_OUT: 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64
+        RWA001_LIQUIDATION_ORACLE: 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E
+
     */
-    address constant RWA001_OPERATOR           = 0xF00DBabEf00DbAbEF00DbabEF00DBABef00dbAbE;
-    address constant RWA001_GEM                = 0x1F9D9834b25F26a92F41eE6e10b2841036a25386;
-    address constant MCD_JOIN_RWA001_A         = 0xae149c840Ab8dD7f66deD0070661d614671ff314;
-    address constant RWA001_A_URN              = 0x9Cc60e93Daf5Af390eB9aBf0591E1ce158c54316;
-    address constant RWA001_A_CONDUIT_IN       = 0xBEe168a3799575a8a2eF61000C9D658Aca41E101;
-    address constant RWA001_A_CONDUIT_OUT      = 0xE795E4e6598CeEb553399a3Dd6f9D40D7ACbE809;
-    address constant RWA001_LIQUIDATION_ORACLE = 0x379ED69aFfaD039c7FD1a5D2930C5DeF65ce0a28;
+    address constant RWA001_OPERATOR           = 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e;
+    address constant RWA001_GEM                = 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4;
+    address constant MCD_JOIN_RWA001_A         = 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74;
+    address constant RWA001_A_URN              = 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151;
+    address constant RWA001_A_CONDUIT_IN       = 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24;
+    address constant RWA001_A_CONDUIT_OUT      = 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64;
+    address constant RWA001_LIQUIDATION_ORACLE = 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E;
 
     uint256 constant SIX_PCT_RATE    = 1000000001847694957439350562;
 
@@ -90,6 +91,13 @@ contract SpellAction {
 
     uint256 constant RWA001_A_INITIAL_DC    = 1000 * RAD;
     uint256 constant RWA001_A_INITIAL_PRICE = 1060 * WAD;
+
+    // MIP13c3-SP4 Declaration of Intent & Commercial Points -
+    //   Off-Chain Asset Backed Lender to onboard Real World Assets
+    //   as Collateral for a DAI loan
+    //
+    // https://ipfs.io/ipfs/QmdmAUTU3sd9VkdfTZNQM6krc9jsKgF2pz7W1qvvfJo1xk
+    string constant DOC = "QmdmAUTU3sd9VkdfTZNQM6krc9jsKgF2pz7W1qvvfJo1xk";
 
     function execute() external {
         // RWA001-A collateral deploy
@@ -111,14 +119,11 @@ contract SpellAction {
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).gem() == RWA001_GEM, "join-gem-not-match");
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).dec() == DSTokenAbstract(RWA001_GEM).decimals(), "join-dec-not-match");
 
-        // DOC hash (TODO)
-        bytes32 doc = "doc";
-
         // init the RwaLiquidationOracle
-        // doc: "doc" TODO
+        // doc: "doc"
         // tau: 5 minutes
         RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).init(
-            ilk, RWA001_A_INITIAL_PRICE, doc, 300
+            ilk, RWA001_A_INITIAL_PRICE, DOC, 300
         );
         (,address pip,,) = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).ilks(ilk);
         CHANGELOG.setAddress("PIP_RWA001", pip);
