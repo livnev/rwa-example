@@ -16,7 +16,7 @@ interface Hevm {
     function store(address,bytes32,bytes32) external;
 }
 
-interface RwaRoutingConduitLike {
+interface RwaOutputConduitLike {
     function wards(address) external returns (uint);
     function can(address) external returns (uint);
     function rely(address) external;
@@ -359,24 +359,24 @@ contract DssSpellTest is DSTest, DSMath {
         RWA001: 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4
         MCD_JOIN_RWA001_A: 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74
         RWA001_A_URN: 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151
-        RWA001_A_CONDUIT_IN: 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24
-        RWA001_A_CONDUIT_OUT: 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64
+        RWA001_A_INPUT_CONDUIT: 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24
+        RWA001_A_OUTPUT_CONDUIT: 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64
         RWA001_LIQUIDATION_ORACLE: 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E
     */
 
     address constant RWA001_GEM                = 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4;
     address constant MCD_JOIN_RWA001_A         = 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74;
     address constant RWA001_A_URN              = 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151;
-    address constant RWA001_A_CONDUIT_IN       = 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24;
-    address constant RWA001_A_CONDUIT_OUT      = 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64;
+    address constant RWA001_A_INPUT_CONDUIT    = 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24;
+    address constant RWA001_A_OUTPUT_CONDUIT   = 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64;
     address constant RWA001_LIQUIDATION_ORACLE = 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E;
 
     DSTokenAbstract constant rwagem    = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin   = GemJoinAbstract(MCD_JOIN_RWA001_A);
     RwaLiquidationLike constant oracle = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
     RwaUrnLike constant rwaurn         = RwaUrnLike(RWA001_A_URN);
-    RwaRoutingConduitLike constant rwaconduitin  = RwaRoutingConduitLike(RWA001_A_CONDUIT_IN);
-    RwaRoutingConduitLike constant rwaconduitout = RwaRoutingConduitLike(RWA001_A_CONDUIT_OUT);
+    RwaOutputConduitLike constant rwaconduitin  = RwaOutputConduitLike(RWA001_A_INPUT_CONDUIT);
+    RwaOutputConduitLike constant rwaconduitout = RwaOutputConduitLike(RWA001_A_OUTPUT_CONDUIT);
 
     address    makerDeployer06         = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
@@ -960,7 +960,7 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     // TODO: finish up
-    // function testSpellIsCast_ROUTING_CONDUIT() public {
+    // function testSpellIsCast_OUTPUT_CONDUIT() public {
     //     vote();
     //     scheduleWaitAndCast();
     //     assertTrue(spell.done());

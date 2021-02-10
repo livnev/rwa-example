@@ -7,12 +7,20 @@ set -e
 # shellcheck disable=SC1091
 source ./scripts/build-env-addresses.sh "$1" > /dev/null 2>&1
 
+if [ -z "$1" ]; then
+  echo "Please specify the network [ kovan, mainnet ]."
+  exit
+fi
+
 SYMBOL="RWA001"
 LETTER="A"
 ILK="${SYMBOL}-${LETTER}"
 OPERATOR="0xD23beB204328D7337e3d2Fb9F150501fDC633B0e"
+
+// kovan only
 TRUST1="0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711"
 TRUST2="0xDA0111100cb6080b43926253AB88bE719C60Be13"
+
 ILK_ENCODED=$(seth --to-bytes32 "$(seth --from-ascii ${ILK})")
 
 # build it
@@ -25,9 +33,10 @@ seth send "${RWA_TOKEN}" 'transfer(address,uint256)' "$OPERATOR" $(seth --to-wei
 # route it
 RWA_CONDUIT_OUT=$(dapp create RwaRoutingConduit "${MCD_GOV}" "${MCD_DAI}")
 seth send "${RWA_CONDUIT_OUT}" 'rely(address)' "${MCD_PAUSE_PROXY}"
-# may remove the following 2 lines
-seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST1}"
-seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST2}"
+if [ "$1" == "kovan" ]; then
+    seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST1}"
+    seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST2}"
+fi
 seth send "${RWA_CONDUIT_OUT}" 'deny(address)' "${ETH_FROM}"
 
 # join it
@@ -55,8 +64,10 @@ seth send "${RWA_LIQUIDATION_ORACLE}" 'deny(address)' "${ETH_FROM}"
 
 # print it
 echo "OPERATOR: ${OPERATOR}"
-echo "TRUST1: ${TRUST1}"
-echo "TRUST2: ${TRUST2}"
+if [ "$1" == "kovan" ]; then
+    echo "TRUST1: ${TRUST1}"
+    echo "TRUST2: ${TRUST2}"
+fi
 echo "ILK: ${ILK}"
 echo "${SYMBOL}: ${RWA_TOKEN}"
 echo "MCD_JOIN_${SYMBOL}_${LETTER}: ${RWA_JOIN}"

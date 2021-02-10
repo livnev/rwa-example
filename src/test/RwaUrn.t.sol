@@ -16,7 +16,7 @@ import {DaiJoin} from 'dss/join.sol';
 import {AuthGemJoin} from "dss-gem-joins/join-auth.sol";
 
 import {RwaToken} from "../RwaToken.sol";
-import {RwaConduit, RwaRoutingConduit} from "../RwaConduit.sol";
+import {RwaInputConduit, RwaOutputConduit} from "../RwaConduit.sol";
 import {RwaLiquidationOracle} from "../RwaLiquidationOracle.sol";
 import {RwaUrn} from "../RwaUrn.sol";
 
@@ -50,10 +50,11 @@ contract TryCaller {
 
 contract RwaUser is TryCaller {
     RwaUrn urn;
-    RwaRoutingConduit outC;
-    RwaConduit inC;
+    RwaOutputConduit outC;
+    RwaInputConduit inC;
 
-    constructor(RwaUrn urn_, RwaRoutingConduit outC_, RwaConduit inC_) public {
+    constructor(RwaUrn urn_, RwaOutputConduit outC_, RwaInputConduit inC_)
+        public {
         urn = urn_;
         outC = outC_;
         inC = inC_;
@@ -133,8 +134,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     RwaLiquidationOracle oracle;
     RwaUrn urn;
 
-    RwaRoutingConduit outConduit;
-    RwaConduit inConduit;
+    RwaOutputConduit outConduit;
+    RwaInputConduit inConduit;
 
     RwaUser usr;
     RwaUltimateRecipient rec;
@@ -204,13 +205,13 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         gemJoin = new AuthGemJoin(address(vat), "acme", address(rwa));
         vat.rely(address(gemJoin));
 
-        // deploy outward dai conduit
-        outConduit = new RwaRoutingConduit(address(gov), address(dai));
+        // deploy output dai conduit
+        outConduit = new RwaOutputConduit(address(gov), address(dai));
         // deploy urn
         urn = new RwaUrn(address(vat), address(gemJoin), address(daiJoin), address(outConduit));
         gemJoin.rely(address(urn));
-        // deploy return dai conduit, pointed permanently at the urn
-        inConduit = new RwaConduit(address(gov), address(dai), address(urn));
+        // deploy input dai conduit, pointed permanently at the urn
+        inConduit = new RwaInputConduit(address(gov), address(dai), address(urn));
 
         // deploy user and ultimate dai recipient
         usr = new RwaUser(urn, outConduit, inConduit);
