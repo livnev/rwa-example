@@ -17,7 +17,7 @@ pragma solidity 0.5.12;
 
 import "lib/dss-interfaces/src/dapp/DSTokenAbstract.sol";
 
-contract RwaConduit {
+contract RwaInputConduit {
     DSTokenAbstract public gov;
     DSTokenAbstract public dai;
     address public to;
@@ -38,7 +38,7 @@ contract RwaConduit {
     }
 }
 
-contract RwaRoutingConduit {
+contract RwaOutputConduit {
     // --- auth ---
     mapping (address => uint256) public wards;
     mapping (address => uint256) public can;
