@@ -38,10 +38,14 @@ contract RwaLiquidationOracle {
     function add(uint48 x, uint48 y) internal pure returns (uint48 z) {
         require((z = x + y) >= x);
     }
+    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require(y == 0 || (z = x * y) / y == x);
+    }
 
     VatAbstract public vat;
+    address     public vow;
     struct Ilk {
-        bytes32 doc; // hash of borrower's agreement with MakerDAO
+        string  doc; // hash of borrower's agreement with MakerDAO
         address pip; // DSValue tracking nominal loan value
         uint48  tau; // pre-agreed remediation period
         uint48  toc; // timestamp when liquidation initiated
@@ -51,18 +55,27 @@ contract RwaLiquidationOracle {
     // Events
     event Rely(address indexed usr);
     event Deny(address indexed usr);
-    event Init(bytes32 indexed ilk, uint256 val, bytes32 doc, uint48 tau);
+    event File(bytes32 indexed what, address data);
+    event Init(bytes32 indexed ilk, uint256 val, string doc, uint48 tau);
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
-    event Cull(bytes32 indexed ilk);
+    event Cull(bytes32 indexed ilk, address indexed urn);
 
-    constructor(address vat_) public {
+    constructor(address vat_, address vow_) public {
         vat = VatAbstract(vat_);
+        vow = vow_;
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
 
-    function init(bytes32 ilk, uint256 val, bytes32 doc, uint48 tau) external auth {
+    // --- administration ---
+    function file(bytes32 what, address data) external auth {
+        if (what == "vow") { vow = data; }
+        else revert("RwaLiquidationOracle/unrecognised-param");
+        emit File(what, data);
+    }
+
+    function init(bytes32 ilk, uint256 val, string calldata doc, uint48 tau) external auth {
         // doc, and tau can be amended, but tau cannot decrease
         require(tau >= ilks[ilk].tau);
         ilks[ilk].doc = doc;
@@ -97,10 +110,23 @@ contract RwaLiquidationOracle {
         emit Cure(ilk);
     }
     // --- write-off ---
-    function cull(bytes32 ilk) external auth {
+    function cull(bytes32 ilk, address urn) external auth {
+        require(ilks[ilk].pip != address(0));
         require(add(ilks[ilk].toc, ilks[ilk].tau) >= block.timestamp);
-        DSValue(ilks[ilk].pip).poke(bytes32(uint256(1)));
-        emit Cull(ilk);
+
+        DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
+
+        (uint256 ink, uint256 art) = vat.urns(ilk, urn);
+        require(ink <= 2 ** 255, "RwaLiquidationOracle/overflow");
+        require(art <= 2 ** 255, "RwaLiquidationOracle/overflow");
+
+        vat.grab(ilk,
+                 address(urn),
+                 address(this),
+                 address(vow),
+                 -int256(ink),
+                 -int256(art));
+        emit Cull(ilk, urn);
     }
 
     // --- liquidation check ---

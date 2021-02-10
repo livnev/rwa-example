@@ -16,9 +16,11 @@ interface Hevm {
     function store(address,bytes32,bytes32) external;
 }
 
-pragma solidity >=0.5.12;
+interface RwaInputConduitLike {
+    function push() external;
+}
 
-interface RwaRoutingConduitLike {
+interface RwaOutputConduitLike {
     function wards(address) external returns (uint);
     function can(address) external returns (uint);
     function rely(address) external;
@@ -50,10 +52,10 @@ interface RwaLiquidationLike {
     function rely(address) external;
     function deny(address) external;
     function ilks(bytes32) external returns (bytes32, address, uint48, uint48);
-    function init(bytes32, bytes32, address, uint48) external;
+    function init(bytes32, uint256, string calldata, uint48) external;
     function tell(bytes32) external;
     function cure(bytes32) external;
-    function cull(bytes32) external;
+    function cull(bytes32, address) external;
     function good(bytes32) external view returns (bool);
 }
 
@@ -156,7 +158,7 @@ contract CullSpellAction {
     function execute() public {
         RwaLiquidationLike(
             CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
-        ).cull(ilk);
+        ).cull(ilk, CHANGELOG.getAddress("RWA001_A_URN"));
     }
 }
 
@@ -246,6 +248,7 @@ contract TellSpellAction {
     bytes32 constant ilk = "RWA001-A";
 
     function execute() public {
+        VatAbstract(CHANGELOG.getAddress("MCD_VAT")).file(ilk, "line", 0);
         RwaLiquidationLike(
             CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
         ).tell(ilk);
@@ -357,33 +360,29 @@ contract DssSpellTest is DSTest, DSMath {
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE
-        PIP_RWA001: 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86
-        MCD_JOIN_RWA001_A: 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63
-        MCD_FLIP_RWA001_A: 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9
-        RWA001_A_URN: 0x10b7890081AEab7fA866be1A0314024EDe851f68
-        RWA001_A_CONDUIT_IN: 0xa1da5fa4920E5926126b5088B9Ce2321e6113812
-        RWA001_A_CONDUIT_OUT: 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB
-        RWA001_LIQUIDATION_ORACLE: 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61
+        RWA001: 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4
+        MCD_JOIN_RWA001_A: 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74
+        RWA001_A_URN: 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151
+        RWA001_A_INPUT_CONDUIT: 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24
+        RWA001_A_OUTPUT_CONDUIT: 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64
+        RWA001_LIQUIDATION_ORACLE: 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E
     */
-    address constant RWA001_GEM                = 0x9D7F8D3332a460344C1FC34624A4fB0B9d2fB2eE;
-    address constant PIP_RWA001                = 0x13DdF6eF3cD4A1f1EE6F6e98Df5Dd2A829CDeD86;
-    address constant MCD_JOIN_RWA001_A         = 0xFeaa20404EF114BDC4a8d667dACc2A2CD87b0E63;
-    address constant MCD_FLIP_RWA001_A         = 0x28749c007cd3D0fb67Db80682d6E3A9E25CC98c9;
-    address constant RWA001_A_URN              = 0x10b7890081AEab7fA866be1A0314024EDe851f68;
-    address constant RWA001_A_CONDUIT_IN       = 0xa1da5fa4920E5926126b5088B9Ce2321e6113812;
-    address constant RWA001_A_CONDUIT_OUT      = 0x6826Db7A8CfE9709baC20345A0e7be40B251bFfB;
-    address constant RWA001_LIQUIDATION_ORACLE = 0x001c86aD3feF5b7CA6CC09f96d678bA060E5Cb61;
 
-    DSTokenAbstract constant rwagem    = DSTokenAbstract(RWA001_GEM);
-    GemJoinAbstract constant rwajoin   = GemJoinAbstract(MCD_JOIN_RWA001_A);
-    FlipAbstract constant rwaflip      = FlipAbstract(MCD_FLIP_RWA001_A);
-    RwaLiquidationLike constant oracle = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
-    RwaUrnLike constant rwaurn         = RwaUrnLike(RWA001_A_URN);
-    RwaRoutingConduitLike constant rwaconduitin  = RwaRoutingConduitLike(RWA001_A_CONDUIT_IN);
-    RwaRoutingConduitLike constant rwaconduitout = RwaRoutingConduitLike(RWA001_A_CONDUIT_OUT);
+    address constant RWA001_GEM                 = 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4;
+    address constant MCD_JOIN_RWA001_A          = 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74;
+    address constant RWA001_A_URN               = 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151;
+    address constant RWA001_A_INPUT_CONDUIT     = 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24;
+    address constant RWA001_A_OUTPUT_CONDUIT    = 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64;
+    address constant RWA001_LIQUIDATION_ORACLE  = 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E;
 
-    address    makerDeployer06         = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
+    DSTokenAbstract constant rwagem             = DSTokenAbstract(RWA001_GEM);
+    GemJoinAbstract constant rwajoin            = GemJoinAbstract(MCD_JOIN_RWA001_A);
+    RwaLiquidationLike constant oracle          = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
+    RwaUrnLike constant rwaurn                  = RwaUrnLike(RWA001_A_URN);
+    RwaInputConduitLike  constant rwaconduitin  = RwaInputConduitLike(RWA001_A_INPUT_CONDUIT);
+    RwaOutputConduitLike constant rwaconduitout = RwaOutputConduitLike(RWA001_A_OUTPUT_CONDUIT);
+
+    address    makerDeployer06                  = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
     RwaSpell spell;
     TellSpell tellSpell;
@@ -880,7 +879,8 @@ contract DssSpellTest is DSTest, DSMath {
         hevm.warp(castTime);
         cullSpell.cast();
         assertTrue(!oracle.good("RWA001-A"));
-        assertEq(DSValueAbstract(PIP_RWA001).read(), bytes32(0));
+        (, address pip,,) = oracle.ilks("RWA001-A");
+        assertEq(DSValueAbstract(pip).read(), bytes32(0));
     }
 
     function testSpellIsCast_RWA001_OPERATOR_LOCK_DRAW_CONDUITS_WIPE_FREE() public {
@@ -964,7 +964,7 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     // TODO: finish up
-    // function testSpellIsCast_ROUTING_CONDUIT() public {
+    // function testSpellIsCast_OUTPUT_CONDUIT() public {
     //     vote();
     //     scheduleWaitAndCast();
     //     assertTrue(spell.done());

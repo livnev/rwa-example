@@ -16,8 +16,7 @@ import {DaiJoin} from 'dss/join.sol';
 import {AuthGemJoin} from "dss-gem-joins/join-auth.sol";
 
 import {RwaToken} from "../RwaToken.sol";
-import {RwaConduit, RwaRoutingConduit} from "../RwaConduit.sol";
-import {RwaFlipper} from "../RwaFlipper.sol";
+import {RwaInputConduit, RwaOutputConduit} from "../RwaConduit.sol";
 import {RwaLiquidationOracle} from "../RwaLiquidationOracle.sol";
 import {RwaUrn} from "../RwaUrn.sol";
 
@@ -51,10 +50,11 @@ contract TryCaller {
 
 contract RwaUser is TryCaller {
     RwaUrn urn;
-    RwaRoutingConduit outC;
-    RwaConduit inC;
+    RwaOutputConduit outC;
+    RwaInputConduit inC;
 
-    constructor(RwaUrn urn_, RwaRoutingConduit outC_, RwaConduit inC_) public {
+    constructor(RwaUrn urn_, RwaOutputConduit outC_, RwaInputConduit inC_)
+        public {
         urn = urn_;
         outC = outC_;
         inC = inC_;
@@ -123,7 +123,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     Vat vat;
     Vow vow;
     Cat cat;
-    Spotter spot;
+    Spotter spotter;
 
     Flapper flap;
     Flopper flop;
@@ -131,19 +131,18 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     DaiJoin daiJoin;
     AuthGemJoin gemJoin;
 
-    RwaFlipper flip;
     RwaLiquidationOracle oracle;
     RwaUrn urn;
 
-    RwaRoutingConduit outConduit;
-    RwaConduit inConduit;
+    RwaOutputConduit outConduit;
+    RwaInputConduit inConduit;
 
     RwaUser usr;
     RwaUltimateRecipient rec;
 
     // debt ceiling of 400 dai
     uint256 ceiling = 400 ether;
-    bytes32 doc = keccak256(abi.encode("Please sign on the dotted line."));
+    string doc = "Please sign on the dotted line.";
 
     function rad(uint wad) internal pure returns (uint) {
         return wad * 10 ** 27;
@@ -162,8 +161,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // standard Vat setup
         vat = new Vat();
 
-        spot = new Spotter(address(vat));
-        vat.rely(address(spot));
+        spotter = new Spotter(address(vat));
+        vat.rely(address(spotter));
 
         flap = new Flapper(address(vat), address(gov));
         flop = new Flopper(address(vat), address(gov));
@@ -190,33 +189,29 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         vat.file("Line", 100 * rad(ceiling));
         vat.file("acme", "line", rad(ceiling));
 
-        oracle = new RwaLiquidationOracle(address(vat));
+        oracle = new RwaLiquidationOracle(address(vat), address(vow));
         oracle.init(
             "acme",
             wmul(ceiling, 1.1 ether),
             doc,
             2 weeks);
+        vat.rely(address(oracle));
         (,address pip,,) = oracle.ilks("acme");
 
-        spot.file("acme", "mat", RAY);
-        spot.file("acme", "pip", pip);
-        spot.poke("acme");
-
-        flip = new RwaFlipper(address(vat), address(cat), "acme");
-        flip.rely(address(cat));
-        cat.file("acme", "flip", address(flip));
-        cat.rely(address(flip));
+        spotter.file("acme", "mat", RAY);
+        spotter.file("acme", "pip", pip);
+        spotter.poke("acme");
 
         gemJoin = new AuthGemJoin(address(vat), "acme", address(rwa));
         vat.rely(address(gemJoin));
 
-        // deploy outward dai conduit
-        outConduit = new RwaRoutingConduit(address(gov), address(dai));
+        // deploy output dai conduit
+        outConduit = new RwaOutputConduit(address(gov), address(dai));
         // deploy urn
         urn = new RwaUrn(address(vat), address(gemJoin), address(daiJoin), address(outConduit));
         gemJoin.rely(address(urn));
-        // deploy return dai conduit, pointed permanently at the urn
-        inConduit = new RwaConduit(address(gov), address(dai), address(urn));
+        // deploy input dai conduit, pointed permanently at the urn
+        inConduit = new RwaInputConduit(address(gov), address(dai), address(urn));
 
         // deploy user and ultimate dai recipient
         usr = new RwaUser(urn, outConduit, inConduit);
@@ -338,7 +333,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(dai.balanceOf(address(rec)), 100 ether);
     }
 
-    function test_oracle_cull_and_flip() public {
+    function test_oracle_cull() public {
         usr.lock(1 ether);
         // not at full utilisation
         usr.draw(200 ether);
@@ -352,19 +347,24 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         hevm.warp(now + 2 weeks);
 
-        oracle.cull("acme");
-        spot.poke("acme");
-
+        assertEq(vat.gem("acme", address(oracle)), 0);
         assertTrue(! oracle.good("acme"));
-        assertTrue(! usr.can_draw(10 ether));
 
-        cat.bite("acme", address(urn));
+        oracle.cull("acme", address(urn));
+
+        assertTrue(! usr.can_draw(10 ether));
 
         (uint ink, uint art) = vat.urns("acme", address(urn));
         assertEq(ink, 0);
         assertEq(art, 0);
 
         assertEq(vat.sin(address(vow)), rad(200 ether));
+
+        assertEq(vat.gem("acme", address(oracle)), 1 ether);
+
+        spotter.poke("acme");
+        (,,uint256 spot ,,) = vat.ilks("acme");
+        assertEq(spot, 0);
     }
 
     function test_oracle_bump() public {
@@ -379,7 +379,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // increase ceiling by 200 dai
         vat.file("acme", "line", rad(ceiling + 200 ether));
         oracle.bump("acme", wmul(ceiling + 200 ether, 1.1 ether));
-        spot.poke("acme");
+        spotter.poke("acme");
 
         usr.draw(200 ether);
         outConduit.push();

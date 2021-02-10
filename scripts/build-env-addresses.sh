@@ -21,13 +21,13 @@ if [[ $_ != "$0" ]]; then
 fi
 
 if [ -z "$1" ]; then
-  echo "Please specify the network [ kovan, mainnet ] or a file path as an argument."
+  echo "Please specify the network [ ethlive, kovan ] or a file path as an argument."
   [ -z "$PS1" ] && exit || return
 fi
 
 if [ "$1" == "kovan" ]; then
   URL="https://changelog.makerdao.com/releases/kovan/active/contracts.json"
-elif [ "$1" == "mainnet" ]; then
+elif [ "$1" == "ethlive" ]; then
   URL="https://changelog.makerdao.com/releases/mainnet/active/contracts.json"
 else
   URL="$1"
