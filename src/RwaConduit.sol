@@ -32,8 +32,9 @@ contract RwaConduit {
 
     function push() external {
         require(gov.balanceOf(msg.sender) > 0);
-        emit Push(to, dai.balanceOf(address(this)));
-        dai.transfer(to, dai.balanceOf(address(this)));
+        uint256 balance = dai.balanceOf(address(this));
+        emit Push(to, balance);
+        dai.transfer(to, balance);
     }
 }
 
@@ -109,7 +110,8 @@ contract RwaRoutingConduit {
     function push() external {
         require(to != address(0), "RwaConduit/to-not-set");
         require(gov.balanceOf(msg.sender) > 0, "RwaConduit/no-gov");
-        emit Push(to, dai.balanceOf(address(this)));
-        dai.transfer(to, dai.balanceOf(address(this)));
+        uint256 balance = dai.balanceOf(address(this));
+        emit Push(to, balance);
+        dai.transfer(to, balance);
     }
 }
