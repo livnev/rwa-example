@@ -192,10 +192,10 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         oracle.init(
             "acme",
             wmul(ceiling, 1.1 ether),
-            doc,
-            2 weeks);
+            doc
+        );
         vat.rely(address(oracle));
-        (,address pip,,) = oracle.ilks("acme");
+        (,address pip,) = oracle.ilks("acme");
 
         spotter.file("acme", "mat", RAY);
         spotter.file("acme", "pip", pip);
@@ -310,6 +310,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(rwa.balanceOf(address(usr)), 1 ether);
     }
 
+    // although hevm.warp is no longer needed in this test, it is left here in
+    // order to prevent a regression
     function test_oracle_cure() public {
         usr.lock(1 ether);
 
@@ -332,6 +334,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(dai.balanceOf(address(rec)), 100 ether);
     }
 
+    // although hevm.warp is no longer needed in this test, it is left here in
+    // order to prevent a regression
     function test_oracle_cull() public {
         usr.lock(1 ether);
         // not at full utilisation
@@ -364,6 +368,9 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         spotter.poke("acme");
         (,,uint256 spot ,,) = vat.ilks("acme");
         assertEq(spot, 0);
+
+        hevm.warp(block.timestamp + 1 seconds);
+        assertTrue(! oracle.good("acme"));
     }
 
     function test_oracle_bump() public {

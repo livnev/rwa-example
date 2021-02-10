@@ -47,8 +47,7 @@ contract RwaLiquidationOracle {
     struct Ilk {
         string  doc; // hash of borrower's agreement with MakerDAO
         address pip; // DSValue tracking nominal loan value
-        uint48  tau; // pre-agreed remediation period
-        uint48  toc; // timestamp when liquidation initiated
+        bool good;   // standing of the loan
     }
     mapping (bytes32 => Ilk) public ilks;
 
@@ -56,7 +55,7 @@ contract RwaLiquidationOracle {
     event Rely(address indexed usr);
     event Deny(address indexed usr);
     event File(bytes32 indexed what, address data);
-    event Init(bytes32 indexed ilk, uint256 val, string doc, uint48 tau);
+    event Init(bytes32 indexed ilk, uint256 val, string doc);
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
     event Cull(bytes32 indexed ilk, address indexed urn);
@@ -75,17 +74,16 @@ contract RwaLiquidationOracle {
         emit File(what, data);
     }
 
-    function init(bytes32 ilk, uint256 val, string calldata doc, uint48 tau) external auth {
-        // doc, and tau can be amended, but tau cannot decrease
-        require(tau >= ilks[ilk].tau);
+    function init(bytes32 ilk, uint256 val, string calldata doc) external auth {
+        // doc can be amended
         ilks[ilk].doc = doc;
-        ilks[ilk].tau = tau;
+        ilks[ilk].good = true;
         if (ilks[ilk].pip == address(0)) {
             DSValue pip = new DSValue();
             ilks[ilk].pip = address(pip);
             pip.poke(bytes32(val));
         }
-        emit Init(ilk, val, doc, tau);
+        emit Init(ilk, val, doc);
     }
 
     // --- valuation adjustment ---
@@ -101,18 +99,16 @@ contract RwaLiquidationOracle {
         // DC must be set to zero first
         require(line == 0);
         require(ilks[ilk].pip != address(0));
-        ilks[ilk].toc = uint48(block.timestamp);
+        ilks[ilk].good = false;
         emit Tell(ilk);
     }
     // --- remediation ---
     function cure(bytes32 ilk) external auth {
-        ilks[ilk].toc = 0;
+        ilks[ilk].good = true;
         emit Cure(ilk);
     }
     // --- write-off ---
     function cull(bytes32 ilk, address urn) external auth {
-        require(add(ilks[ilk].toc, ilks[ilk].tau) >= block.timestamp);
-
         DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
 
         (uint256 ink, uint256 art) = vat.urns(ilk, urn);
@@ -132,6 +128,6 @@ contract RwaLiquidationOracle {
     // to be called by off-chain parties (e.g. a trustee) to check the standing of the loan
     function good(bytes32 ilk) external view returns (bool) {
         require(ilks[ilk].pip != address(0));
-        return (ilks[ilk].toc == 0 || add(ilks[ilk].toc, ilks[ilk].tau) < block.timestamp);
+        return ilks[ilk].good;
     }
 }
