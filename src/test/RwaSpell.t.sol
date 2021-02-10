@@ -16,8 +16,6 @@ interface Hevm {
     function store(address,bytes32,bytes32) external;
 }
 
-pragma solidity >=0.5.12;
-
 interface RwaRoutingConduitLike {
     function wards(address) external returns (uint);
     function can(address) external returns (uint);
