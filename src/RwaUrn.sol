@@ -84,11 +84,9 @@ contract RwaUrn {
 
     // --- administration ---
     function file(bytes32 what, address data) external auth {
-        if (what == "fbo") {
-            fbo = data;
-            emit File(what, data);
-        }
+        if (what == "fbo") { fbo = data; }
         else revert("RwaUrn/unrecognised-param");
+        emit File(what, data);
     }
 
     // --- cdp operation ---

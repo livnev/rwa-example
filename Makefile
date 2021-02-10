@@ -3,4 +3,4 @@ clean          :; dapp clean
 test           :; ./test-rwaspell.sh $(match)
 deploy         :; echo "use deploy-kovan or deploy-mainnet"
 deploy-kovan   :; ./scripts/deploy.sh kovan
-deploy-mainnet :; ./scripts/deploy.sh mainnet
+deploy-mainnet :; ./scripts/deploy.sh ethlive

@@ -109,6 +109,7 @@ contract RwaLiquidationOracle {
     }
     // --- write-off ---
     function cull(bytes32 ilk, address urn) external auth {
+        require(ilks[ilk].pip != address(0));
         DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
 
         (uint256 ink, uint256 art) = vat.urns(ilk, urn);
