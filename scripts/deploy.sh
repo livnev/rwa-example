@@ -4,20 +4,18 @@
 
 set -e
 
+[[ "$1" == "ethlive" || "$1" == "kovan" ]] || { echo "Please specify the network [ ethlive, kovan ]."; exit 1; }
+[[ "$ETH_RPC_URL" && "$(seth chain)" == "$1" ]] || { echo "Please set a $1 ETH_RPC_URL"; exit 1; }
+
 # shellcheck disable=SC1091
 source ./scripts/build-env-addresses.sh "$1" > /dev/null 2>&1
-
-if [ -z "$1" ]; then
-  echo "Please specify the network [ kovan, mainnet ]."
-  exit
-fi
 
 SYMBOL="RWA001"
 LETTER="A"
 ILK="${SYMBOL}-${LETTER}"
 OPERATOR="0xD23beB204328D7337e3d2Fb9F150501fDC633B0e"
 
-// kovan only
+# kovan only
 TRUST1="0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711"
 TRUST2="0xDA0111100cb6080b43926253AB88bE719C60Be13"
 
