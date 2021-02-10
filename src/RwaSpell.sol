@@ -45,7 +45,7 @@ interface RwaUrnLike {
 
 contract SpellAction {
     // KOVAN ADDRESSES
-   //
+    //
     // The contracts in this list should correspond to MCD core contracts, verify
     // against the current release list at:
     //     https://changelog.makerdao.com/releases/mainnet/active/contracts.json
