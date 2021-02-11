@@ -381,10 +381,14 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertTrue(! usr.can_draw(10 ether));
 
         hevm.warp(now + 1 weeks);
+        // still in remeditation period
+        assertTrue(oracle.good("acme"));
+
+        hevm.warp(now + 1 weeks);
 
         assertEq(vat.gem("acme", address(oracle)), 0);
+        // remediation period has elapsed
         assertTrue(! oracle.good("acme"));
-
         oracle.cull("acme", address(urn));
 
         assertTrue(! usr.can_draw(10 ether));
@@ -403,16 +407,16 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(spot, 0);
     }
 
-    function test_oracle_bad_loan_is_good_again() public {
+    function test_oracle_unremedied_loan_is_not_good() public {
         usr.lock(1 ether);
         usr.draw(200 ether);
 
         vat.file("acme", "line", 0);
         oracle.tell("acme");
-        assertTrue(! oracle.good("acme"));
+        assertTrue(oracle.good("acme"));
 
         hevm.warp(now + 3 weeks);
-        assertTrue(oracle.good("acme"));
+        assertTrue(! oracle.good("acme"));
     }
 
     function test_oracle_cull_two_urns() public {
@@ -441,6 +445,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         assertTrue(! usr.can_draw(1 ether));
         assertTrue(! usr2.can_draw(1 ether));
+
+        hevm.warp(now + 2 weeks);
 
         oracle.cull("acme", address(urn));
 

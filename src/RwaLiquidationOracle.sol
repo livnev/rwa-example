@@ -112,7 +112,7 @@ contract RwaLiquidationOracle {
     // --- write-off ---
     function cull(bytes32 ilk, address urn) external auth {
         require(ilks[ilk].pip != address(0));
-        require(add(ilks[ilk].toc, ilks[ilk].tau) >= block.timestamp);
+        require(add(ilks[ilk].toc, ilks[ilk].tau) <= block.timestamp);
 
         DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
 
@@ -133,6 +133,7 @@ contract RwaLiquidationOracle {
     // to be called by off-chain parties (e.g. a trustee) to check the standing of the loan
     function good(bytes32 ilk) external view returns (bool) {
         require(ilks[ilk].pip != address(0));
-        return (ilks[ilk].toc == 0 || add(ilks[ilk].toc, ilks[ilk].tau) < block.timestamp);
+        // tell not called or still in remediation period
+        return (ilks[ilk].toc == 0 || add(ilks[ilk].toc, ilks[ilk].tau) > block.timestamp);
     }
 }
