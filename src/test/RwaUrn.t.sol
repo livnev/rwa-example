@@ -449,11 +449,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         hevm.warp(now + 3 weeks);
 
         oracle.cull("acme", address(urn));
-
         assertEq(vat.sin(address(vow)), rad(100 ether));
-
         oracle.cull("acme", address(urn2));
-
         assertEq(vat.sin(address(vow)), rad(200 ether));
     }
 
