@@ -98,6 +98,18 @@ contract RwaUser is TryCaller {
         ok = abi.decode(success, (bool));
         if (ok) return true;
     }
+    function can_free(uint256 wad) public returns (bool) {
+        string memory sig = "free(uint256)";
+        bytes memory data = abi.encodeWithSignature(sig, wad);
+        bytes memory can_call = abi.encodeWithSignature(
+            "try_call(address,bytes)",
+            address(urn),
+            data
+        );
+        (bool ok, bytes memory success) = address(this).call(can_call);
+        ok = abi.decode(success, (bool));
+        if (ok) return true;
+    }
 }
 
 contract TryPusher is TryCaller {
@@ -231,11 +243,15 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     }
 
     function test_unpick_and_pick_new_rec() public {
-        // unpick current rec
-        usr.pick(address(0));
-
+        // lock some acme and draw some dai
         usr.lock(1 ether);
         usr.draw(400 ether);
+
+        // the dai can be pushed
+        assertTrue(can_push(address(outConduit)));
+
+        // unpick current rec
+        usr.pick(address(0));
 
         // dai can't move
         assertTrue(! can_push(address(outConduit)));
@@ -256,24 +272,38 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     }
 
     function test_lock_and_draw() public {
+        // check initial balances
+        assertEq(dai.balanceOf(address(outConduit)), 0);
+        assertEq(dai.balanceOf(address(rec)), 0);
+
         usr.lock(1 ether);
         usr.draw(400 ether);
-        assertEq(dai.balanceOf(address(outConduit)), 400 ether);
 
+        // check the amount went to the output conduit
+        assertEq(dai.balanceOf(address(outConduit)), 400 ether);
+        assertEq(dai.balanceOf(address(rec)), 0);
+
+        // push the amount to the receiver
         outConduit.push();
+        assertEq(dai.balanceOf(address(outConduit)), 0);
         assertEq(dai.balanceOf(address(rec)), 400 ether);
     }
 
-    function test_cant_draw_too_much() public {
+    function test_draw_exceeds_debt_ceiling() public {
         usr.lock(1 ether);
         assertTrue(! usr.can_draw(500 ether));
     }
 
-    function test_cant_draw_as_rando() public {
+    function test_cant_draw_unless_hoped() public {
         usr.lock(1 ether);
 
         RwaUser rando = new RwaUser(urn, outConduit, inConduit);
         assertTrue(! rando.can_draw(100 ether));
+
+        urn.hope(address(rando));
+        assertEq(dai.balanceOf(address(outConduit)), 0);
+        rando.draw(100 ether);
+        assertEq(dai.balanceOf(address(outConduit)), 100 ether);
     }
 
     function test_partial_repay() public {
@@ -287,9 +317,12 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         inConduit.push();
         usr.wipe(100 ether);
+        assertTrue(! usr.can_free(1 ether));
+        usr.free(0.1 ether);
 
-        (, uint art) = vat.urns("acme", address(urn));
+        (uint ink, uint art) = vat.urns("acme", address(urn));
         assertEq(art, 300 ether);
+        assertEq(ink, 0.9 ether);
         assertEq(dai.balanceOf(address(inConduit)), 0 ether);
     }
 
@@ -313,6 +346,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
     function test_oracle_cure() public {
         usr.lock(1 ether);
+        assertTrue(usr.can_draw(10 ether));
 
         // flash the liquidation beacon
         vat.file("acme", "line", rad(0));
@@ -324,10 +358,11 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         hevm.warp(now + 1 weeks);
 
         oracle.cure("acme");
-        vat.file("acme", "line", rad(400 ether));
+        vat.file("acme", "line", rad(ceiling));
         assertTrue(oracle.good("acme"));
 
         // able to borrow
+        assertEq(dai.balanceOf(address(rec)), 0);
         usr.draw(100 ether);
         outConduit.push();
         assertEq(dai.balanceOf(address(rec)), 100 ether);
@@ -345,7 +380,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // not able to borrow
         assertTrue(! usr.can_draw(10 ether));
 
-        hevm.warp(now + 2 weeks);
+        hevm.warp(now + 1 weeks);
 
         assertEq(vat.gem("acme", address(oracle)), 0);
         assertTrue(! oracle.good("acme"));
@@ -360,11 +395,60 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         assertEq(vat.sin(address(vow)), rad(200 ether));
 
+        // after the write-off, the gem goes to the oracle
         assertEq(vat.gem("acme", address(oracle)), 1 ether);
 
         spotter.poke("acme");
         (,,uint256 spot ,,) = vat.ilks("acme");
         assertEq(spot, 0);
+    }
+
+    function test_oracle_bad_loan_is_good_again() public {
+        usr.lock(1 ether);
+        usr.draw(200 ether);
+
+        vat.file("acme", "line", 0);
+        oracle.tell("acme");
+        assertTrue(! oracle.good("acme"));
+
+        hevm.warp(now + 3 weeks);
+        assertTrue(oracle.good("acme"));
+    }
+
+    function test_oracle_cull_two_urns() public {
+        RwaUrn urn2 = new RwaUrn(
+            address(vat),
+            address(gemJoin),
+            address(daiJoin),
+            address(outConduit)
+        );
+        gemJoin.rely(address(urn2));
+        RwaUser usr2 = new RwaUser(urn2, outConduit, inConduit);
+        usr.approve(rwa, address(this), uint(-1));
+        rwa.transferFrom(address(usr), address(usr2), 0.5 ether);
+        usr2.approve(rwa, address(urn2), uint(-1));
+        urn2.hope(address(usr2));
+        usr.lock(0.5 ether);
+        usr2.lock(0.5 ether);
+        usr.draw(100 ether);
+        usr2.draw(100 ether);
+
+        assertTrue(usr.can_draw(1 ether));
+        assertTrue(usr2.can_draw(1 ether));
+
+        vat.file("acme", "line", 0);
+        oracle.tell("acme");
+
+        assertTrue(! usr.can_draw(1 ether));
+        assertTrue(! usr2.can_draw(1 ether));
+
+        oracle.cull("acme", address(urn));
+
+        assertEq(vat.sin(address(vow)), rad(100 ether));
+
+        oracle.cull("acme", address(urn2));
+
+        assertEq(vat.sin(address(vow)), rad(200 ether));
     }
 
     function test_oracle_bump() public {
@@ -373,11 +457,17 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         outConduit.push();
 
-        // can't borrow more
-        assertTrue(!usr.can_draw(1 ether));
+        // can't borrow more, ceiling exceeded
+        assertTrue(! usr.can_draw(1 ether));
 
         // increase ceiling by 200 dai
         vat.file("acme", "line", rad(ceiling + 200 ether));
+
+        // still can't borrow much more, vault is unsafe
+        assertTrue(usr.can_draw(1 ether));
+        assertTrue(! usr.can_draw(200 ether));
+
+        // bump the price of acme
         oracle.bump("acme", wmul(ceiling + 200 ether, 1.1 ether));
         spotter.poke("acme");
 
