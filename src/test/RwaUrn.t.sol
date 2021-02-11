@@ -384,7 +384,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // still in remeditation period
         assertTrue(oracle.good("acme"));
 
-        hevm.warp(now + 1 weeks);
+        hevm.warp(now + 2 weeks);
 
         assertEq(vat.gem("acme", address(oracle)), 0);
         // remediation period has elapsed
@@ -446,7 +446,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertTrue(! usr.can_draw(1 ether));
         assertTrue(! usr2.can_draw(1 ether));
 
-        hevm.warp(now + 2 weeks);
+        hevm.warp(now + 3 weeks);
 
         oracle.cull("acme", address(urn));
 
