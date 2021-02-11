@@ -30,7 +30,7 @@ contract RwaLiquidationOracle {
         emit Deny(usr);
     }
     modifier auth {
-        require(wards[msg.sender] == 1, "RwaLiquidationOracle/not-authorized");
+        require(wards[msg.sender] == 1, "RwaOracle/not-authorized");
         _;
     }
 
@@ -71,13 +71,13 @@ contract RwaLiquidationOracle {
     // --- administration ---
     function file(bytes32 what, address data) external auth {
         if (what == "vow") { vow = data; }
-        else revert("RwaLiquidationOracle/unrecognised-param");
+        else revert("RwaOracle/unrecognised-param");
         emit File(what, data);
     }
 
     function init(bytes32 ilk, uint256 val, string calldata doc, uint48 tau) external auth {
         // doc, and tau can be amended, but tau cannot decrease
-        require(tau >= ilks[ilk].tau, "RwaLiquidationOracle/decreasing-tau");
+        require(tau >= ilks[ilk].tau, "RwaOracle/decreasing-tau");
         ilks[ilk].doc = doc;
         ilks[ilk].tau = tau;
         if (ilks[ilk].pip == address(0)) {
@@ -92,15 +92,15 @@ contract RwaLiquidationOracle {
     function bump(bytes32 ilk, uint256 val) external auth {
         DSValue pip = DSValue(ilks[ilk].pip);
         // only cull can decrease
-        require(val >= uint256(pip.read()), "RwaLiquidationOracle/decreasing-val");
+        require(val >= uint256(pip.read()), "RwaOracle/decreasing-val");
         DSValue(ilks[ilk].pip).poke(bytes32(val));
     }
     // --- liquidation ---
     function tell(bytes32 ilk) external auth {
         (,,,uint256 line,) = vat.ilks(ilk);
         // DC must be set to zero first
-        require(line == 0, "RwaLiquidationOracle/nonzero-line");
-        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/unknown-ilk");
+        require(line == 0, "RwaOracle/nonzero-line");
+        require(ilks[ilk].pip != address(0), "RwaOracle/unknown-ilk");
         ilks[ilk].toc = uint48(block.timestamp);
         emit Tell(ilk);
     }
@@ -111,14 +111,14 @@ contract RwaLiquidationOracle {
     }
     // --- write-off ---
     function cull(bytes32 ilk, address urn) external auth {
-        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/unknown-ilk");
-        require(block.timestamp >= add(ilks[ilk].toc, ilks[ilk].tau), "RwaLiquidationOracle/early-cull");
+        require(ilks[ilk].pip != address(0), "RwaOracle/unknown-ilk");
+        require(block.timestamp >= add(ilks[ilk].toc, ilks[ilk].tau), "RwaOracle/early-cull");
 
         DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
 
         (uint256 ink, uint256 art) = vat.urns(ilk, urn);
-        require(ink <= 2 ** 255, "RwaLiquidationOracle/overflow");
-        require(art <= 2 ** 255, "RwaLiquidationOracle/overflow");
+        require(ink <= 2 ** 255, "RwaOracle/overflow");
+        require(art <= 2 ** 255, "RwaOracle/overflow");
 
         vat.grab(ilk,
                  address(urn),
@@ -132,7 +132,7 @@ contract RwaLiquidationOracle {
     // --- liquidation check ---
     // to be called by off-chain parties (e.g. a trustee) to check the standing of the loan
     function good(bytes32 ilk) external view returns (bool) {
-        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/unknown-ilk");
+        require(ilks[ilk].pip != address(0), "RwaOracle/unknown-ilk");
         // tell not called or still in remediation period
         return (ilks[ilk].toc == 0 || block.timestamp < add(ilks[ilk].toc, ilks[ilk].tau));
     }
