@@ -53,7 +53,7 @@ contract RwaUrn {
     VatAbstract  public vat;
     GemJoinAbstract public gemJoin;
     DaiJoinAbstract public daiJoin;
-    address public fbo;              // routing conduit
+    address public outputConduit;
 
     // Events
     event Rely(address indexed usr);
@@ -68,13 +68,13 @@ contract RwaUrn {
 
     // --- init ---
     constructor(
-        address vat_, address gemJoin_, address daiJoin_, address fbo_
+        address vat_, address gemJoin_, address daiJoin_, address outputConduit_
     ) public {
-        // requires in urn that fbo isn't address(0)
+        // requires in urn that outputConduit isn't address(0)
         vat = VatAbstract(vat_);
         gemJoin = GemJoinAbstract(gemJoin_);
         daiJoin = DaiJoinAbstract(daiJoin_);
-        fbo = fbo_;
+        outputConduit = outputConduit_;
         wards[msg.sender] = 1;
         DSTokenAbstract(gemJoin.gem()).approve(address(gemJoin), uint256(-1));
         DaiAbstract(daiJoin.dai()).approve(address(daiJoin), uint256(-1));
@@ -84,7 +84,7 @@ contract RwaUrn {
 
     // --- administration ---
     function file(bytes32 what, address data) external auth {
-        if (what == "fbo") { fbo = data; }
+        if (what == "outputConduit") { outputConduit = data; }
         else revert("RwaUrn/unrecognised-param");
         emit File(what, data);
     }
@@ -107,12 +107,12 @@ contract RwaUrn {
         gemJoin.exit(msg.sender, wad);
         emit Free(wad);
     }
-    // n.b. DAI can only go to fbo
+    // n.b. DAI can only go to the output conduit
     function draw(uint256 wad) external operator {
-        require(fbo != address(0));
+        require(outputConduit != address(0));
         require(wad <= 2**255 - 1, "RwaUrn/overflow");
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, int(wad));
-        daiJoin.exit(fbo, wad);
+        daiJoin.exit(outputConduit, wad);
         emit Draw(wad);
     }
     // n.b. anyone can wipe
