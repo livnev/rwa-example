@@ -77,7 +77,7 @@ contract RwaLiquidationOracle {
 
     function init(bytes32 ilk, uint256 val, string calldata doc, uint48 tau) external auth {
         // doc, and tau can be amended, but tau cannot decrease
-        require(tau >= ilks[ilk].tau);
+        require(tau >= ilks[ilk].tau, "RwaLiquidationOracle/decreasing-tau");
         ilks[ilk].doc = doc;
         ilks[ilk].tau = tau;
         if (ilks[ilk].pip == address(0)) {
@@ -92,15 +92,15 @@ contract RwaLiquidationOracle {
     function bump(bytes32 ilk, uint256 val) external auth {
         DSValue pip = DSValue(ilks[ilk].pip);
         // only cull can decrease
-        require(val >= uint256(pip.read()));
+        require(val >= uint256(pip.read()), "RwaLiquidationOracle/decreasing-val");
         DSValue(ilks[ilk].pip).poke(bytes32(val));
     }
     // --- liquidation ---
     function tell(bytes32 ilk) external auth {
         (,,,uint256 line,) = vat.ilks(ilk);
         // DC must be set to zero first
-        require(line == 0);
-        require(ilks[ilk].pip != address(0));
+        require(line == 0, "RwaLiquidationOracle/nonzero-line");
+        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/unknown-ilk");
         ilks[ilk].toc = uint48(block.timestamp);
         emit Tell(ilk);
     }
@@ -111,8 +111,8 @@ contract RwaLiquidationOracle {
     }
     // --- write-off ---
     function cull(bytes32 ilk, address urn) external auth {
-        require(ilks[ilk].pip != address(0));
-        require(add(ilks[ilk].toc, ilks[ilk].tau) <= block.timestamp);
+        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/unknown-ilk");
+        require(add(ilks[ilk].toc, ilks[ilk].tau) <= block.timestamp, "RwaLiquidationOracle/early-cull");
 
         DSValue(ilks[ilk].pip).poke(bytes32(uint256(0)));
 
@@ -132,7 +132,7 @@ contract RwaLiquidationOracle {
     // --- liquidation check ---
     // to be called by off-chain parties (e.g. a trustee) to check the standing of the loan
     function good(bytes32 ilk) external view returns (bool) {
-        require(ilks[ilk].pip != address(0));
+        require(ilks[ilk].pip != address(0), "RwaLiquidationOracle/unknown-ilk");
         // tell not called or still in remediation period
         return (ilks[ilk].toc == 0 || add(ilks[ilk].toc, ilks[ilk].tau) > block.timestamp);
     }
