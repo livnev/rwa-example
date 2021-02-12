@@ -29,7 +29,7 @@ RWA_TOKEN=$(dapp create RwaToken)
 seth send "${RWA_TOKEN}" 'transfer(address,uint256)' "$OPERATOR" $(seth --to-wei 1.0 ether)
 
 # route it
-RWA_CONDUIT_OUT=$(dapp create RwaRoutingConduit "${MCD_GOV}" "${MCD_DAI}")
+RWA_CONDUIT_OUT=$(dapp create RwaOutputConduit "${MCD_GOV}" "${MCD_DAI}")
 seth send "${RWA_CONDUIT_OUT}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 if [ "$1" == "kovan" ]; then
     seth send "${RWA_CONDUIT_OUT}" 'kiss(address)' "${TRUST1}"
@@ -53,7 +53,7 @@ seth send "${RWA_JOIN}" 'rely(address)' "${RWA_URN}"
 seth send "${RWA_JOIN}" 'deny(address)' "${ETH_FROM}"
 
 # connect it
-RWA_CONDUIT_IN=$(dapp create RwaConduit "${MCD_GOV}" "${MCD_DAI}" "${RWA_URN}")
+RWA_CONDUIT_IN=$(dapp create RwaInputConduit "${MCD_GOV}" "${MCD_DAI}" "${RWA_URN}")
 
 # price it
 RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle "${MCD_VAT}" "${MCD_VOW}")

@@ -91,7 +91,7 @@ contract EndSpell {
 
     function schedule() public {
         require(eta == 0, "This spell has already been scheduled");
-        eta = now + DSPauseAbstract(pause).delay();
+        eta = block.timestamp + DSPauseAbstract(pause).delay();
         pause.plot(action, tag, sig, eta);
     }
 
@@ -139,7 +139,7 @@ contract OperatorSpell {
 
     function schedule() public {
         require(eta == 0, "This spell has already been scheduled");
-        eta = now + DSPauseAbstract(pause).delay();
+        eta = block.timestamp + DSPauseAbstract(pause).delay();
         pause.plot(action, tag, sig, eta);
     }
 
@@ -185,7 +185,7 @@ contract CullSpell {
 
     function schedule() public {
         require(eta == 0, "This spell has already been scheduled");
-        eta = now + DSPauseAbstract(pause).delay();
+        eta = block.timestamp + DSPauseAbstract(pause).delay();
         pause.plot(action, tag, sig, eta);
     }
 
@@ -231,7 +231,7 @@ contract CureSpell {
 
     function schedule() public {
         require(eta == 0, "This spell has already been scheduled");
-        eta = now + DSPauseAbstract(pause).delay();
+        eta = block.timestamp + DSPauseAbstract(pause).delay();
         pause.plot(action, tag, sig, eta);
     }
 
@@ -278,7 +278,7 @@ contract TellSpell {
 
     function schedule() public {
         require(eta == 0, "This spell has already been scheduled");
-        eta = now + DSPauseAbstract(pause).delay();
+        eta = block.timestamp + DSPauseAbstract(pause).delay();
         pause.plot(action, tag, sig, eta);
     }
 
@@ -360,20 +360,20 @@ contract DssSpellTest is DSTest, DSMath {
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4
-        MCD_JOIN_RWA001_A: 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74
-        RWA001_A_URN: 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151
-        RWA001_A_INPUT_CONDUIT: 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24
-        RWA001_A_OUTPUT_CONDUIT: 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64
-        RWA001_LIQUIDATION_ORACLE: 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E
+        RWA001: 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F
+        MCD_JOIN_RWA001_A: 0x2225c0034dBD4250ac431F899dEBf039A0384AEC
+        RWA001_A_URN: 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf
+        RWA001_A_CONDUIT_IN: 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b
+        RWA001_A_CONDUIT_OUT: 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD
+        RWA001_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
     */
 
-    address constant RWA001_GEM                 = 0x73D26FDb0f6B0b2F6738493aA3Df4fbAbDf371C4;
-    address constant MCD_JOIN_RWA001_A          = 0x800F4909b109CFD9407bfD40280CD3F5Aaa11a74;
-    address constant RWA001_A_URN               = 0xA8925E80E4bd715bc94ad40208c708DbAF2D6151;
-    address constant RWA001_A_INPUT_CONDUIT     = 0xE1955e370CbfA01F8a992aA7C4C43f8E77374B24;
-    address constant RWA001_A_OUTPUT_CONDUIT    = 0x7c93C37a2e69a5DF8A62AAF753c83eFACc5C6e64;
-    address constant RWA001_LIQUIDATION_ORACLE  = 0x046a4A0bbAa4454e22c35968da4F8a28cf06ca2E;
+    address constant RWA001_GEM                 = 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F;
+    address constant MCD_JOIN_RWA001_A          = 0x2225c0034dBD4250ac431F899dEBf039A0384AEC;
+    address constant RWA001_A_URN               = 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf;
+    address constant RWA001_A_INPUT_CONDUIT     = 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b;
+    address constant RWA001_A_OUTPUT_CONDUIT    = 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD;
+    address constant RWA001_LIQUIDATION_ORACLE  = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
 
     DSTokenAbstract constant rwagem             = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin            = GemJoinAbstract(MCD_JOIN_RWA001_A);
@@ -496,7 +496,7 @@ contract DssSpellTest is DSTest, DSMath {
     function scheduleWaitAndCastFailDay() public {
         spell.schedule();
 
-        uint256 castTime = now + pause.delay();
+        uint256 castTime = block.timestamp + pause.delay();
         uint256 day = (castTime / 1 days + 3) % 7;
         if (day < 5) {
             castTime += 5 days - day * 86400;
@@ -509,7 +509,7 @@ contract DssSpellTest is DSTest, DSMath {
     function scheduleWaitAndCastFailEarly() public {
         spell.schedule();
 
-        uint256 castTime = now + pause.delay() + 24 hours;
+        uint256 castTime = block.timestamp + pause.delay() + 24 hours;
         uint256 hour = castTime / 1 hours % 24;
         if (hour >= 14) {
             castTime -= hour * 3600 - 13 hours;
@@ -522,7 +522,7 @@ contract DssSpellTest is DSTest, DSMath {
     function scheduleWaitAndCastFailLate() public {
         spell.schedule();
 
-        uint256 castTime = now + pause.delay();
+        uint256 castTime = block.timestamp + pause.delay();
         uint256 hour = castTime / 1 hours % 24;
         if (hour < 21) {
             castTime += 21 hours - hour * 3600;
@@ -579,7 +579,7 @@ contract DssSpellTest is DSTest, DSMath {
     function scheduleWaitAndCast() public {
         spell.schedule();
 
-        uint256 castTime = now + pause.delay();
+        uint256 castTime = block.timestamp + pause.delay();
 
         uint256 day = (castTime / 1 days + 3) % 7;
         if(day >= 5) {
@@ -778,7 +778,7 @@ contract DssSpellTest is DSTest, DSMath {
                 stringToBytes32(description));
 
         if(address(spell) != address(KOVAN_SPELL)) {
-            assertEq(spell.expiration(), (now + 30 days));
+            assertEq(spell.expiration(), (block.timestamp + 30 days));
         } else {
             assertEq(spell.expiration(), (SPELL_CREATED + 30 days));
         }
@@ -822,10 +822,11 @@ contract DssSpellTest is DSTest, DSMath {
 
         tellSpell.schedule();
 
-        uint256 castTime = now + pause.delay();
+        uint256 castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         tellSpell.cast();
-        hevm.warp(600);
+        assertTrue(oracle.good("RWA001-A"));
+        hevm.warp(block.timestamp + 600);
         assertTrue(!oracle.good("RWA001-A"));
     }
 
@@ -839,17 +840,18 @@ contract DssSpellTest is DSTest, DSMath {
 
         tellSpell.schedule();
 
-        uint256 castTime = now + pause.delay();
+        uint256 castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         tellSpell.cast();
-        hevm.warp(600);
+        assertTrue(oracle.good("RWA001-A"));
+        hevm.warp(block.timestamp + 600);
         assertTrue(!oracle.good("RWA001-A"));
 
         cureSpell = new CureSpell();
         voteTemp(address(cureSpell));
 
         cureSpell.schedule();
-        castTime = now + pause.delay();
+        castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         cureSpell.cast();
         assertTrue(oracle.good("RWA001-A"));
@@ -859,23 +861,25 @@ contract DssSpellTest is DSTest, DSMath {
         vote();
         scheduleWaitAndCast();
         assertTrue(spell.done());
+        assertTrue(oracle.good("RWA001-A"));
 
         tellSpell = new TellSpell();
         voteTemp(address(tellSpell));
 
         tellSpell.schedule();
 
-        uint256 castTime = now + pause.delay();
+        uint256 castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         tellSpell.cast();
-        hevm.warp(600);
+        assertTrue(oracle.good("RWA001-A"));
+        hevm.warp(block.timestamp + 600);
         assertTrue(!oracle.good("RWA001-A"));
 
         cullSpell = new CullSpell();
         voteTemp(address(cullSpell));
 
         cullSpell.schedule();
-        castTime = now + pause.delay();
+        castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         cullSpell.cast();
         assertTrue(!oracle.good("RWA001-A"));
@@ -956,7 +960,7 @@ contract DssSpellTest is DSTest, DSMath {
 
         endSpell.schedule();
 
-        uint256 castTime = now + pause.delay();
+        uint256 castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         endSpell.cast();
 
