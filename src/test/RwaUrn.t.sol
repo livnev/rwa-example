@@ -36,7 +36,7 @@ contract RwaUltimateRecipient {
 }
 
 contract TryCaller {
-    function try_call(address addr, bytes calldata data) external returns (bool) {
+    function do_call(address addr, bytes calldata data) external returns (bool) {
         bytes memory _data = data;
         assembly {
             let ok := call(gas(), addr, 0, add(_data, 0x20), mload(_data), 0, 0)
@@ -45,6 +45,11 @@ contract TryCaller {
             mstore(0x40, add(free, 32))
             revert(free, 32)
         }
+    }
+
+    function try_call(address addr, bytes calldata data) external returns (bool ok) {
+        (, bytes memory returned) = address(this).call(abi.encodeWithSignature("do_call(address,bytes)", addr, data));
+        ok = abi.decode(returned, (bool));
     }
 }
 
@@ -78,50 +83,32 @@ contract RwaUser is TryCaller {
     function wipe(uint256 wad) public {
         urn.wipe(wad);
     }
-    function can_pick(address who) public returns (bool) {
-        string memory sig = "pick(address)";
-        bytes memory data = abi.encodeWithSignature(sig, who);
-
-        bytes memory can_call = abi.encodeWithSignature("try_call(address,bytes)", address(outC), data);
-        (bool ok, bytes memory success) = address(this).call(can_call);
-
-        ok = abi.decode(success, (bool));
-        if (ok) return true;
-    }
-    function can_draw(uint256 wad) public returns (bool) {
-        string memory sig = "draw(uint256)";
-        bytes memory data = abi.encodeWithSignature(sig, wad);
-
-        bytes memory can_call = abi.encodeWithSignature("try_call(address,bytes)", address(urn), data);
-        (bool ok, bytes memory success) = address(this).call(can_call);
-
-        ok = abi.decode(success, (bool));
-        if (ok) return true;
-    }
-    function can_free(uint256 wad) public returns (bool) {
-        string memory sig = "free(uint256)";
-        bytes memory data = abi.encodeWithSignature(sig, wad);
-        bytes memory can_call = abi.encodeWithSignature(
-            "try_call(address,bytes)",
-            address(urn),
-            data
+    function can_pick(address who) public returns (bool ok) {
+        ok = this.try_call(
+            address(outC),
+            abi.encodeWithSignature("pick(address)", who)
         );
-        (bool ok, bytes memory success) = address(this).call(can_call);
-        ok = abi.decode(success, (bool));
-        if (ok) return true;
+    }
+    function can_draw(uint256 wad) public returns (bool ok) {
+        ok = this.try_call(
+            address(urn),
+            abi.encodeWithSignature("draw(uint256)", wad)
+        );
+    }
+    function can_free(uint256 wad) public returns (bool ok) {
+        ok = this.try_call(
+            address(urn),
+            abi.encodeWithSignature("free(uint256)", wad)
+        );
     }
 }
 
 contract TryPusher is TryCaller {
-    function can_push(address wat) public returns (bool) {
-        string memory sig = "push()";
-        bytes memory data = abi.encodeWithSignature(sig);
-
-        bytes memory can_call = abi.encodeWithSignature("try_call(address,bytes)", wat, data);
-        (bool ok, bytes memory success) = address(this).call(can_call);
-
-        ok = abi.decode(success, (bool));
-        if (ok) return true;
+    function can_push(address wat) public returns (bool ok) {
+        ok = this.try_call(
+            address(wat),
+            abi.encodeWithSignature("push()")
+        );
     }
 }
 
