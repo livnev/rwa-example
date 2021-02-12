@@ -198,13 +198,13 @@ contract RwaSpell {
         address _action = action;
         assembly { _tag := extcodehash(_action) }
         tag = _tag;
-        expiration = now + 30 days;
+        expiration = block.timestamp + 30 days;
     }
 
     function schedule() public {
-        require(now <= expiration, "This contract has expired");
+        require(block.timestamp <= expiration, "This contract has expired");
         require(eta == 0, "This spell has already been scheduled");
-        eta = now + DSPauseAbstract(pause).delay();
+        eta = block.timestamp + DSPauseAbstract(pause).delay();
         pause.plot(action, tag, sig, eta);
     }
 
