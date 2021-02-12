@@ -5,12 +5,8 @@ import "ds-token/token.sol";
 import "ds-math/math.sol";
 
 import {Vat} from "dss/vat.sol";
-import {Cat} from 'dss/cat.sol';
-import {Vow} from 'dss/vow.sol';
 
 import {Spotter} from "dss/spot.sol";
-import {Flopper} from 'dss/flop.sol';
-import {Flapper} from 'dss/flap.sol';
 
 import {DaiJoin} from 'dss/join.sol';
 import {AuthGemJoin} from "dss-gem-joins/join-auth.sol";
@@ -120,12 +116,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     RwaToken rwa;
 
     Vat vat;
-    Vow vow;
-    Cat cat;
+    address vow = address(123);;
     Spotter spotter;
-
-    Flapper flap;
-    Flopper flop;
 
     DaiJoin daiJoin;
     AuthGemJoin gemJoin;
@@ -163,21 +155,6 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         spotter = new Spotter(address(vat));
         vat.rely(address(spotter));
 
-        flap = new Flapper(address(vat), address(gov));
-        flop = new Flopper(address(vat), address(gov));
-
-        vow = new Vow(address(vat), address(flap), address(flop));
-        flap.rely(address(vow));
-        flop.rely(address(vow));
-
-        cat = new Cat(address(vat));
-        cat.file("vow", address(vow));
-        cat.file("box", rad(1_000_000 ether));
-        cat.file("acme", "chop", WAD);
-        cat.file("acme", "dunk", rad(1_000_000 ether));
-        vat.rely(address(cat));
-        vow.rely(address(cat));
-
         dai = new DSToken("Dai");
         daiJoin = new DaiJoin(address(vat), address(dai));
         vat.rely(address(daiJoin));
@@ -188,7 +165,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         vat.file("Line", 100 * rad(ceiling));
         vat.file("acme", "line", rad(ceiling));
 
-        oracle = new RwaLiquidationOracle(address(vat), address(vow));
+        oracle = new RwaLiquidationOracle(address(vat), vow);
         oracle.init(
             "acme",
             wmul(ceiling, 1.1 ether),
@@ -342,7 +319,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // not able to borrow
         assertTrue(! usr.can_draw(10 ether));
 
-        hevm.warp(now + 1 weeks);
+        hevm.warp(block.timestamp + 1 weeks);
 
         oracle.cure("acme");
         vat.file("acme", "line", rad(ceiling));
@@ -367,11 +344,11 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // not able to borrow
         assertTrue(! usr.can_draw(10 ether));
 
-        hevm.warp(now + 1 weeks);
+        hevm.warp(block.timestamp + 1 weeks);
         // still in remeditation period
         assertTrue(oracle.good("acme"));
 
-        hevm.warp(now + 2 weeks);
+        hevm.warp(block.timestamp + 2 weeks);
 
         assertEq(vat.gem("acme", address(oracle)), 0);
         // remediation period has elapsed
@@ -384,7 +361,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(ink, 0);
         assertEq(art, 0);
 
-        assertEq(vat.sin(address(vow)), rad(200 ether));
+        assertEq(vat.sin(vow), rad(200 ether));
 
         // after the write-off, the gem goes to the oracle
         assertEq(vat.gem("acme", address(oracle)), 1 ether);
@@ -402,7 +379,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         oracle.tell("acme");
         assertTrue(oracle.good("acme"));
 
-        hevm.warp(now + 3 weeks);
+        hevm.warp(block.timestamp + 3 weeks);
         assertTrue(! oracle.good("acme"));
     }
 
@@ -433,12 +410,12 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertTrue(! usr.can_draw(1 ether));
         assertTrue(! usr2.can_draw(1 ether));
 
-        hevm.warp(now + 3 weeks);
+        hevm.warp(block.timestamp + 3 weeks);
 
         oracle.cull("acme", address(urn));
-        assertEq(vat.sin(address(vow)), rad(100 ether));
+        assertEq(vat.sin(vow), rad(100 ether));
         oracle.cull("acme", address(urn2));
-        assertEq(vat.sin(address(vow)), rad(200 ether));
+        assertEq(vat.sin(vow), rad(200 ether));
     }
 
     function test_oracle_bump() public {
