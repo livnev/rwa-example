@@ -4,7 +4,7 @@
 
 - `RwaLiquidationOracle`: which acts as a liquidation beacon for an off-chain enforcer.
 - `RwaUrn`: which facilitates borrowing of DAI, delivering to a designated account.
-- `RwaRoutingConduit` and `RwaConduit`: which disburse and repay DAI
+- `RwaOutputConduit` and `RwaInputConduit`: which disburse and repay DAI
 - `RwaSpell`: which deploys and activates a new collateral type
 - `RwaToken`: which represents the RWA collateral in the system
 
