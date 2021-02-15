@@ -140,6 +140,7 @@ contract SpellAction {
 
         // 1000 debt ceiling
         VatAbstract(MCD_VAT).file(ilk, "line", RWA001_A_INITIAL_DC);
+        VatAbstract(MCD_VAT).file("Line", VatAbstract(MCD_VAT).Line() + RWA001_A_INITIAL_DC);
 
         // No dust
         // VatAbstract(MCD_VAT).file(ilk, "dust", 0)
