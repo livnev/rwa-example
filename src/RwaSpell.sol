@@ -69,7 +69,7 @@ contract SpellAction {
         RWA001_A_URN: 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf
         RWA001_A_CONDUIT_IN: 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b
         RWA001_A_CONDUIT_OUT: 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD
-        RWA001_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
+        MIP21_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
     */
     address constant RWA001_OPERATOR           = 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e;
     address constant RWA001_GEM                = 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F;
@@ -77,7 +77,7 @@ contract SpellAction {
     address constant RWA001_A_URN              = 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf;
     address constant RWA001_A_INPUT_CONDUIT    = 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b;
     address constant RWA001_A_OUTPUT_CONDUIT   = 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD;
-    address constant RWA001_LIQUIDATION_ORACLE = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
+    address constant MIP21_LIQUIDATION_ORACLE  = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
 
     uint256 constant SIX_PCT_RATE    = 1000000001847694957439350562;
 
@@ -107,7 +107,7 @@ contract SpellAction {
         // add RWA-001 contract to the changelog
         CHANGELOG.setAddress("RWA001", RWA001_GEM);
         CHANGELOG.setAddress("MCD_JOIN_RWA001_A", MCD_JOIN_RWA001_A);
-        CHANGELOG.setAddress("RWA001_LIQUIDATION_ORACLE", RWA001_LIQUIDATION_ORACLE);
+        CHANGELOG.setAddress("MIP21_LIQUIDATION_ORACLE", MIP21_LIQUIDATION_ORACLE);
         CHANGELOG.setAddress("RWA001_A_URN", RWA001_A_URN);
         CHANGELOG.setAddress("RWA001_A_INPUT_CONDUIT", RWA001_A_INPUT_CONDUIT);
         CHANGELOG.setAddress("RWA001_A_OUTPUT_CONDUIT", RWA001_A_OUTPUT_CONDUIT);
@@ -121,10 +121,10 @@ contract SpellAction {
         // init the RwaLiquidationOracle
         // doc: "doc"
         // tau: 5 minutes
-        RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).init(
+        RwaLiquidationLike(MIP21_LIQUIDATION_ORACLE).init(
             ilk, RWA001_A_INITIAL_PRICE, DOC, 300
         );
-        (,address pip,,) = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE).ilks(ilk);
+        (,address pip,,) = RwaLiquidationLike(MIP21_LIQUIDATION_ORACLE).ilks(ilk);
         CHANGELOG.setAddress("PIP_RWA001", pip);
 
         // Set price feed for RWA001
@@ -139,7 +139,7 @@ contract SpellAction {
         VatAbstract(MCD_VAT).rely(MCD_JOIN_RWA001_A);
 
         // Allow RwaLiquidationOracle to modify Vat registry
-        VatAbstract(MCD_VAT).rely(RWA001_LIQUIDATION_ORACLE);
+        VatAbstract(MCD_VAT).rely(MIP21_LIQUIDATION_ORACLE);
 
         // 1000 debt ceiling
         VatAbstract(MCD_VAT).file(ilk, "line", RWA001_A_INITIAL_DC);

@@ -157,7 +157,7 @@ contract CullSpellAction {
 
     function execute() public {
         RwaLiquidationLike(
-            CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
+            CHANGELOG.getAddress("MIP21_LIQUIDATION_ORACLE")
         ).cull(ilk, CHANGELOG.getAddress("RWA001_A_URN"));
     }
 }
@@ -203,7 +203,7 @@ contract CureSpellAction {
 
     function execute() public {
         RwaLiquidationLike(
-            CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
+            CHANGELOG.getAddress("MIP21_LIQUIDATION_ORACLE")
         ).cure(ilk);
     }
 }
@@ -250,7 +250,7 @@ contract TellSpellAction {
     function execute() public {
         VatAbstract(CHANGELOG.getAddress("MCD_VAT")).file(ilk, "line", 0);
         RwaLiquidationLike(
-            CHANGELOG.getAddress("RWA001_LIQUIDATION_ORACLE")
+            CHANGELOG.getAddress("MIP21_LIQUIDATION_ORACLE")
         ).tell(ilk);
     }
 }
@@ -365,7 +365,7 @@ contract DssSpellTest is DSTest, DSMath {
         RWA001_A_URN: 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf
         RWA001_A_CONDUIT_IN: 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b
         RWA001_A_CONDUIT_OUT: 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD
-        RWA001_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
+        MIP21_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
     */
 
     address constant RWA001_GEM                 = 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F;
@@ -373,11 +373,11 @@ contract DssSpellTest is DSTest, DSMath {
     address constant RWA001_A_URN               = 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf;
     address constant RWA001_A_INPUT_CONDUIT     = 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b;
     address constant RWA001_A_OUTPUT_CONDUIT    = 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD;
-    address constant RWA001_LIQUIDATION_ORACLE  = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
+    address constant MIP21_LIQUIDATION_ORACLE   = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
 
     DSTokenAbstract constant rwagem             = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin            = GemJoinAbstract(MCD_JOIN_RWA001_A);
-    RwaLiquidationLike constant oracle          = RwaLiquidationLike(RWA001_LIQUIDATION_ORACLE);
+    RwaLiquidationLike constant oracle          = RwaLiquidationLike(MIP21_LIQUIDATION_ORACLE);
     RwaUrnLike constant rwaurn                  = RwaUrnLike(RWA001_A_URN);
     RwaInputConduitLike  constant rwaconduitin  = RwaInputConduitLike(RWA001_A_INPUT_CONDUIT);
     RwaOutputConduitLike constant rwaconduitout = RwaOutputConduitLike(RWA001_A_OUTPUT_CONDUIT);
