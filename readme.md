@@ -8,11 +8,16 @@
 - `RwaSpell`: which deploys and activates a new collateral type
 - `RwaToken`: which represents the RWA collateral in the system
 
-## todo:
+## spells:
 
-- `RwaTellSpell`: which allows MakerDAO governance to initiate liquidation proceedings.
-- `RwaRemedySpell`: which allows MakerDAO governance to dismiss liquidation proceedings.
-- `RwaWriteoffSpell`: which allows MakerDAO governance to write off a loan which was in liquidation.
+The following can be found in `src/RwaSpell.sol`:
+- `RwaSpell`: which deploys and configures the RWA collateral in MakerDAO in accordance with MIP21 
+
+The following can be found in `src/test/RwaSpell.t.sol`:
+
+- `TellSpell`: which allows MakerDAO governance to initiate liquidation proceedings.
+- `CureSpell`: which allows MakerDAO governance to dismiss liquidation proceedings.
+- `CullSpell`: which allows MakerDAO governance to write off a loan which was in liquidation.
 
 ## deploy
 
