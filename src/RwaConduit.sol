@@ -113,5 +113,6 @@ contract RwaOutputConduit {
         uint256 balance = dai.balanceOf(address(this));
         emit Push(to, balance);
         dai.transfer(to, balance);
+        to = address(0);
     }
 }

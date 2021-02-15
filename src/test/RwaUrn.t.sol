@@ -200,8 +200,6 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         outConduit.hope(address(usr));
         outConduit.kiss(address(rec));
 
-        // usr nominates ultimate recipient
-        usr.pick(address(rec));
         usr.approve(rwa, address(urn), uint(-1));
     }
 
@@ -210,6 +208,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.lock(1 ether);
         usr.draw(400 ether);
 
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
         // the dai can be pushed
         assertTrue(can_push(address(outConduit)));
 
@@ -246,6 +246,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(dai.balanceOf(address(outConduit)), 400 ether);
         assertEq(dai.balanceOf(address(rec)), 0);
 
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
         // push the amount to the receiver
         outConduit.push();
         assertEq(dai.balanceOf(address(outConduit)), 0);
@@ -273,6 +275,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.lock(1 ether);
         usr.draw(400 ether);
 
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
         outConduit.push();
 
         rec.transfer(address(inConduit), 100 ether);
@@ -293,6 +297,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.lock(1 ether);
         usr.draw(400 ether);
 
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
         outConduit.push();
 
         rec.transfer(address(inConduit), 400 ether);
@@ -327,6 +333,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // able to borrow
         assertEq(dai.balanceOf(address(rec)), 0);
         usr.draw(100 ether);
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
         outConduit.push();
         assertEq(dai.balanceOf(address(rec)), 100 ether);
     }
@@ -421,6 +429,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.lock(1 ether);
         usr.draw(400 ether);
 
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
         outConduit.push();
 
         // can't borrow more, ceiling exceeded
@@ -438,6 +448,8 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         spotter.poke("acme");
 
         usr.draw(200 ether);
+        // recipient must be picked again for 2nd push
+        usr.pick(address(rec));
         outConduit.push();
 
         assertEq(dai.balanceOf(address(rec)), 600 ether);
