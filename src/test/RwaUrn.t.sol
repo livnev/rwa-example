@@ -116,7 +116,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     RwaToken rwa;
 
     Vat vat;
-    address vow = address(123);;
+    address vow = address(123);
     Spotter spotter;
 
     DaiJoin daiJoin;
