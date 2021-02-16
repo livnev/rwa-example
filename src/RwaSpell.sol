@@ -5,11 +5,8 @@ import "lib/dss-interfaces/src/dapp/DSPauseAbstract.sol";
 import "lib/dss-interfaces/src/dss/JugAbstract.sol";
 import "lib/dss-interfaces/src/dss/SpotAbstract.sol";
 import "lib/dss-interfaces/src/dss/GemJoinAbstract.sol";
-import "lib/dss-interfaces/src/dss/DaiJoinAbstract.sol";
 import "lib/dss-interfaces/src/dapp/DSTokenAbstract.sol";
-import "lib/dss-interfaces/src/dss/IlkRegistryAbstract.sol";
 import "lib/dss-interfaces/src/dss/ChainlogAbstract.sol";
-import "lib/dss-interfaces/src/dapp/DSValueAbstract.sol";
 
 interface RwaLiquidationLike {
     function wards(address) external returns (uint256);
@@ -46,7 +43,7 @@ contract SpellAction {
     //
     // The contracts in this list should correspond to MCD core contracts, verify
     // against the current release list at:
-    //     https://changelog.makerdao.com/releases/mainnet/active/contracts.json
+    //     https://changelog.makerdao.com/releases/kovan/latest/contracts.json
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
@@ -79,7 +76,7 @@ contract SpellAction {
     address constant RWA001_A_OUTPUT_CONDUIT   = 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD;
     address constant MIP21_LIQUIDATION_ORACLE  = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
 
-    uint256 constant SIX_PCT_RATE    = 1000000001847694957439350562;
+    uint256 constant THREE_PCT_RATE  = 1000000000937303470807876289;
 
     // precision
     uint256 constant public THOUSAND = 10 ** 3;
@@ -111,6 +108,10 @@ contract SpellAction {
         CHANGELOG.setAddress("RWA001_A_URN", RWA001_A_URN);
         CHANGELOG.setAddress("RWA001_A_INPUT_CONDUIT", RWA001_A_INPUT_CONDUIT);
         CHANGELOG.setAddress("RWA001_A_OUTPUT_CONDUIT", RWA001_A_OUTPUT_CONDUIT);
+
+        // bump changelog version
+        // TODO make sure to update this version on mainnet
+        CHANGELOG.setVersion("1.2.8");
 
         // Sanity checks
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).vat() == vat(), "join-vat-not-match");
@@ -148,8 +149,8 @@ contract SpellAction {
         // No dust
         // VatAbstract(vat()).file(ilk, "dust", 0)
 
-        // 6% stability fee TODO ask matt
-        JugAbstract(jug()).file(ilk, "duty", SIX_PCT_RATE);
+        // 3% stability fee
+        JugAbstract(jug()).file(ilk, "duty", THREE_PCT_RATE);
 
         // collateralization ratio 100%
         SpotAbstract(spot()).file(ilk, "mat", RAY);
@@ -157,7 +158,6 @@ contract SpellAction {
         // poke the spotter to pull in a price
         SpotAbstract(spot()).poke(ilk);
 
-        // TODO: add to deploy scripts and remove
         // give the urn permissions on the join adapter
         GemJoinAbstract(MCD_JOIN_RWA001_A).rely(RWA001_A_URN);
 

@@ -8,6 +8,7 @@ import "ds-math/math.sol";
 import "ds-test/test.sol";
 import "lib/dss-interfaces/src/Interfaces.sol";
 import "./rates.sol";
+import "./addresses_kovan.sol";
 
 import {RwaSpell, SpellAction} from "../RwaSpell.sol";
 
@@ -280,32 +281,33 @@ contract DssSpellTest is DSTest, DSMath {
 
     Hevm hevm;
     Rates rates;
+    Addresses addr  = new Addresses();
 
     // KOVAN ADDRESSES
-    DSPauseAbstract      pause = DSPauseAbstract(    0x8754E6ecb4fe68DaA5132c2886aB39297a5c7189);
-    address         pauseProxy =                     0x0e4725db88Bb038bBa4C4723e91Ba183BE11eDf3;
+    DSPauseAbstract      pause = DSPauseAbstract(    addr.addr("MCD_PAUSE"));
+    address         pauseProxy =                     addr.addr("MCD_PAUSE_PROXY");
 
-    DSChiefAbstract      chief = DSChiefAbstract(    0x27E0c9567729Ea6e3241DE74B3dE499b7ddd3fe6);
-    VatAbstract            vat = VatAbstract(        0xbA987bDB501d131f766fEe8180Da5d81b34b69d9);
+    DSChiefAbstract      chief = DSChiefAbstract(    addr.addr("MCD_ADM"));
+    VatAbstract            vat = VatAbstract(        addr.addr("MCD_VAT"));
 
-    CatAbstract            cat = CatAbstract(        0xdDb5F7A3A5558b9a6a1f3382BD75E2268d1c6958);
-    JugAbstract            jug = JugAbstract(        0xcbB7718c9F39d05aEEDE1c472ca8Bf804b2f1EaD);
+    CatAbstract            cat = CatAbstract(        addr.addr("MCD_CAT"));
+    JugAbstract            jug = JugAbstract(        addr.addr("MCD_JUG"));
 
-    VowAbstract            vow = VowAbstract(        0x0F4Cbe6CBA918b7488C26E29d9ECd7368F38EA3b);
-    PotAbstract            pot = PotAbstract(        0xEA190DBDC7adF265260ec4dA6e9675Fd4f5A78bb);
+    VowAbstract            vow = VowAbstract(        addr.addr("MCD_VOW"));
+    PotAbstract            pot = PotAbstract(        addr.addr("MCD_POT"));
 
-    SpotAbstract          spot = SpotAbstract(       0x3a042de6413eDB15F2784f2f97cC68C7E9750b2D);
-    DSTokenAbstract        gov = DSTokenAbstract(    0xAaF64BFCC32d0F15873a02163e7E500671a4ffcD);
+    SpotAbstract          spot = SpotAbstract(       addr.addr("MCD_SPOT"));
+    DSTokenAbstract        gov = DSTokenAbstract(    addr.addr("MCD_GOV"));
 
-    EndAbstract            end = EndAbstract(        0x24728AcF2E2C403F5d2db4Df6834B8998e56aA5F);
-    IlkRegistryAbstract    reg = IlkRegistryAbstract(0xedE45A0522CA19e979e217064629778d6Cc2d9Ea);
+    EndAbstract            end = EndAbstract(        addr.addr("MCD_END"));
+    IlkRegistryAbstract    reg = IlkRegistryAbstract(addr.addr("ILK_REGISTRY"));
 
-    OsmMomAbstract      osmMom = OsmMomAbstract(     0x5dA9D1C3d4f1197E5c52Ff963916Fe84D2F5d8f3);
-    FlipperMomAbstract flipMom = FlipperMomAbstract( 0x50dC6120c67E456AdA2059cfADFF0601499cf681);
+    OsmMomAbstract      osmMom = OsmMomAbstract(     addr.addr("OSM_MOM"));
+    FlipperMomAbstract flipMom = FlipperMomAbstract( addr.addr("FLIPPER_MOM"));
 
-    DSTokenAbstract        dai = DSTokenAbstract(    0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+    DSTokenAbstract        dai = DSTokenAbstract(    addr.addr("MCD_DAI"));
 
-    ChainlogAbstract chainlog  = ChainlogAbstract(   0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    ChainlogAbstract chainlog  = ChainlogAbstract(   addr.addr("CHANGELOG"));
 
     /*
         OPERATOR: 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e
@@ -743,24 +745,21 @@ contract DssSpellTest is DSTest, DSMath {
 
         // checkCollateralValues(afterSpell);
     }
-//
-//    // TODO: add test back
-//    // function testChainlogValues() public {
-//    //     vote();
-//    //     scheduleWaitAndCast();
-//    //     assertTrue(spell.done());
-//
-//    //     // assertEq(chainlog.getAddress("FLIP_FAB"), 0x4ACdbe9dd0d00b36eC2050E805012b8Fc9974f2b);
-//    //     // assertEq(chainlog.getAddress("GUSD"), 0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd);
-//    //     // assertEq(chainlog.getAddress("MCD_JOIN_GUSD_A"), 0xe29A14bcDeA40d83675aa43B72dF07f649738C8b);
-//    //     // assertEq(chainlog.getAddress("MCD_FLIP_GUSD_A"), 0xCAa8D152A8b98229fB77A213BE16b234cA4f612f);
-//    //     // assertEq(chainlog.getAddress("PIP_GUSD"), 0xf45Ae69CcA1b9B043dAE2C83A5B65Bc605BEc5F5);
-//    // }
-//
-    function testSpellIsCast_RWA001_INTEGRATION() public {
+
+    function testChainlogValues() public {
         vote();
         scheduleWaitAndCast();
         assertTrue(spell.done());
+
+        assertEq(chainlog.getAddress("OPERATOR"), 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e);
+        assertEq(chainlog.getAddress("TRUST1"), 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711);
+        assertEq(chainlog.getAddress("TRUST2"), 0xDA0111100cb6080b43926253AB88bE719C60Be13);
+        assertEq(chainlog.getAddress("RWA001"), 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F);
+        assertEq(chainlog.getAddress("MCD_JOIN_RWA001_A"), 0x2225c0034dBD4250ac431F899dEBf039A0384AEC);
+        assertEq(chainlog.getAddress("RWA001_A_URN"), 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf);
+        assertEq(chainlog.getAddress("RWA001_A_INPUT_CONDUIT"), 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b);
+        assertEq(chainlog.getAddress("RWA001_A_OUTPUT_CONDUIT"), 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD);
+        assertEq(chainlog.getAddress("MIP21_LIQUIDATION_ORACLE"), 0x856f61A4DbD981f477ea60203251bB748aa36e89);
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL() public {
@@ -917,40 +916,4 @@ contract DssSpellTest is DSTest, DSMath {
 
         // TODO: finish
     }
-
-    // TODO: finish up
-    // function testSpellIsCast_OUTPUT_CONDUIT() public {
-    //     vote();
-    //     scheduleWaitAndCast();
-    //     assertTrue(spell.done());
-
-    //     // fix this
-    //     hevm.store(
-    //         address(rwaconduitout),
-    //         keccak256(abi.encode(address(a), uint256(4))),
-    //         uint256(1)
-    //     );
-    //     hevm.store(
-    //         address(rwaconduitout),
-    //         keccak256(abi.encode(address(b), uint256(4))),
-    //         uint256(1)
-    //     );
-    //     hevm.store(
-    //         address(rwaconduitout),
-    //         keccak256(abi.encode(address(c), uint256(4))),
-    //         uint256(1)
-    //     );
-    //     hevm.store(
-    //         address(rwaurn),
-    //         keccak256(abi.encode(address(this), uint256(1))),
-    //         bytes32(uint256(1))
-    //     );
-
-    // }
-
-    // test end in 2 scenarios (if we need yank in flip contract?) think thru if we need yank in the clip?
-
-    //  what to do if MCD isn't instantiated, if we don't give people the token big issue, token can trade on uni
-
-    // would this end work with ETH? think of it very generally
 }
