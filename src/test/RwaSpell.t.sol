@@ -54,6 +54,7 @@ interface RwaLiquidationLike {
     function deny(address) external;
     function ilks(bytes32) external returns (bytes32, address, uint48, uint48);
     function init(bytes32, uint256, string calldata, uint48) external;
+    function bump(bytes32, uint256) external;
     function tell(bytes32) external;
     function cure(bytes32) external;
     function cull(bytes32, address) external;
@@ -170,6 +171,26 @@ contract TellSpell is TestSpell {
     }
 }
 
+contract BumpSpellAction {
+    ChainlogAbstract constant CHANGELOG =
+        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+    bytes32 constant ilk = "RWA001-A";
+    uint256 constant WAD = 10 ** 18;
+
+    function execute() public {
+        RwaLiquidationLike(
+            CHANGELOG.getAddress("MIP21_LIQUIDATION_ORACLE")
+        ).bump(ilk, 1070 * WAD);
+    }
+}
+
+contract BumpSpell is TestSpell {
+    constructor() public {
+        action = address(new BumpSpellAction());
+        setTag();
+    }
+}
+
 contract DssSpellTest is DSTest, DSMath {
     // populate with mainnet spell if needed
     address constant KOVAN_SPELL = address(0);
@@ -267,6 +288,7 @@ contract DssSpellTest is DSTest, DSMath {
     address    makerDeployer06                  = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
     RwaSpell spell;
+    BumpSpell bumpSpell;
     TellSpell tellSpell;
     CureSpell cureSpell;
     CullSpell cullSpell;
@@ -685,6 +707,25 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(chainlog.getAddress("RWA001_A_INPUT_CONDUIT"), 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b);
         assertEq(chainlog.getAddress("RWA001_A_OUTPUT_CONDUIT"), 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD);
         assertEq(chainlog.getAddress("MIP21_LIQUIDATION_ORACLE"), 0x856f61A4DbD981f477ea60203251bB748aa36e89);
+    }
+
+    function testSpellIsCast_RWA001_INTEGRATION_BUMP() public {
+        vote();
+        scheduleWaitAndCast();
+        assertTrue(spell.done());
+
+        bumpSpell = new BumpSpell();
+        voteTemp(address(bumpSpell));
+
+        bumpSpell.schedule();
+
+        uint256 castTime = block.timestamp + pause.delay();
+        hevm.warp(castTime);
+        (, address pip, ,) = oracle.ilks("RWA001-A");
+
+        assertEq(DSValueAbstract(pip).read(), bytes32(1060 * WAD));
+        bumpSpell.cast();
+        assertEq(DSValueAbstract(pip).read(), bytes32(1070 * WAD));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL() public {
