@@ -751,9 +751,6 @@ contract DssSpellTest is DSTest, DSMath {
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
-        assertEq(chainlog.getAddress("OPERATOR"), 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e);
-        assertEq(chainlog.getAddress("TRUST1"), 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711);
-        assertEq(chainlog.getAddress("TRUST2"), 0xDA0111100cb6080b43926253AB88bE719C60Be13);
         assertEq(chainlog.getAddress("RWA001"), 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F);
         assertEq(chainlog.getAddress("MCD_JOIN_RWA001_A"), 0x2225c0034dBD4250ac431F899dEBf039A0384AEC);
         assertEq(chainlog.getAddress("RWA001_A_URN"), 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf);
