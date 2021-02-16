@@ -69,7 +69,7 @@ contract EndSpellAction {
     }
 }
 
-contract EndSpell {
+contract TestSpell {
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
@@ -83,7 +83,9 @@ contract EndSpell {
 
     constructor() public {
         sig = abi.encodeWithSignature("execute()");
-        action = address(new EndSpellAction());
+    }
+
+    function setTag() internal {
         bytes32 _tag;
         address _action = action;
         assembly { _tag := extcodehash(_action) }
@@ -100,6 +102,13 @@ contract EndSpell {
         require(!done, "spell-already-cast");
         done = true;
         pause.exec(action, tag, sig, eta);
+    }
+}
+
+contract EndSpell is TestSpell {
+    constructor() public {
+        action = address(new EndSpellAction());
+        setTag();
     }
 }
 
@@ -115,37 +124,10 @@ contract CullSpellAction {
     }
 }
 
-contract CullSpell {
-    ChainlogAbstract constant CHANGELOG =
-        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-    DSPauseAbstract public pause =
-        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-    address         public action;
-    bytes32         public tag;
-    uint256         public eta;
-    bytes           public sig;
-    uint256         public expiration;
-    bool            public done;
-
+contract CullSpell is TestSpell {
     constructor() public {
-        sig = abi.encodeWithSignature("execute()");
         action = address(new CullSpellAction());
-        bytes32 _tag;
-        address _action = action;
-        assembly { _tag := extcodehash(_action) }
-        tag = _tag;
-    }
-
-    function schedule() public {
-        require(eta == 0, "This spell has already been scheduled");
-        eta = block.timestamp + DSPauseAbstract(pause).delay();
-        pause.plot(action, tag, sig, eta);
-    }
-
-    function cast() public {
-        require(!done, "spell-already-cast");
-        done = true;
-        pause.exec(action, tag, sig, eta);
+        setTag();
     }
 }
 
@@ -161,37 +143,10 @@ contract CureSpellAction {
     }
 }
 
-contract CureSpell {
-    ChainlogAbstract constant CHANGELOG =
-        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-    DSPauseAbstract public pause =
-        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-    address         public action;
-    bytes32         public tag;
-    uint256         public eta;
-    bytes           public sig;
-    uint256         public expiration;
-    bool            public done;
-
+contract CureSpell is TestSpell {
     constructor() public {
-        sig = abi.encodeWithSignature("execute()");
         action = address(new CureSpellAction());
-        bytes32 _tag;
-        address _action = action;
-        assembly { _tag := extcodehash(_action) }
-        tag = _tag;
-    }
-
-    function schedule() public {
-        require(eta == 0, "This spell has already been scheduled");
-        eta = block.timestamp + DSPauseAbstract(pause).delay();
-        pause.plot(action, tag, sig, eta);
-    }
-
-    function cast() public {
-        require(!done, "spell-already-cast");
-        done = true;
-        pause.exec(action, tag, sig, eta);
+        setTag();
     }
 }
 
@@ -208,37 +163,10 @@ contract TellSpellAction {
     }
 }
 
-contract TellSpell {
-    ChainlogAbstract constant CHANGELOG =
-        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-    DSPauseAbstract public pause =
-        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-    address         public action;
-    bytes32         public tag;
-    uint256         public eta;
-    bytes           public sig;
-    uint256         public expiration;
-    bool            public done;
-
+contract TellSpell is TestSpell {
     constructor() public {
-        sig = abi.encodeWithSignature("execute()");
         action = address(new TellSpellAction());
-        bytes32 _tag;
-        address _action = action;
-        assembly { _tag := extcodehash(_action) }
-        tag = _tag;
-    }
-
-    function schedule() public {
-        require(eta == 0, "This spell has already been scheduled");
-        eta = block.timestamp + DSPauseAbstract(pause).delay();
-        pause.plot(action, tag, sig, eta);
-    }
-
-    function cast() public {
-        require(!done, "spell-already-cast");
-        done = true;
-        pause.exec(action, tag, sig, eta);
+        setTag();
     }
 }
 
