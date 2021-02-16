@@ -56,9 +56,9 @@ seth send "${RWA_JOIN}" 'deny(address)' "${ETH_FROM}"
 RWA_INPUT_CONDUIT=$(dapp create RwaInputConduit "${MCD_GOV}" "${MCD_DAI}" "${RWA_URN}")
 
 # price it
-RWA_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle "${MCD_VAT}" "${MCD_VOW}")
-seth send "${RWA_LIQUIDATION_ORACLE}" 'rely(address)' "${MCD_PAUSE_PROXY}"
-seth send "${RWA_LIQUIDATION_ORACLE}" 'deny(address)' "${ETH_FROM}"
+MIP21_LIQUIDATION_ORACLE=$(dapp create RwaLiquidationOracle "${MCD_VAT}" "${MCD_VOW}")
+seth send "${MIP21_LIQUIDATION_ORACLE}" 'rely(address)' "${MCD_PAUSE_PROXY}"
+seth send "${MIP21_LIQUIDATION_ORACLE}" 'deny(address)' "${ETH_FROM}"
 
 # print it
 echo "OPERATOR: ${OPERATOR}"
@@ -72,7 +72,7 @@ echo "MCD_JOIN_${SYMBOL}_${LETTER}: ${RWA_JOIN}"
 echo "${SYMBOL}_${LETTER}_URN: ${RWA_URN}"
 echo "${SYMBOL}_${LETTER}_INPUT_CONDUIT: ${RWA_INPUT_CONDUIT}"
 echo "${SYMBOL}_${LETTER}_OUTPUT_CONDUIT: ${RWA_OUTPUT_CONDUIT}"
-echo "MIP21_LIQUIDATION_ORACLE: ${RWA_LIQUIDATION_ORACLE}"
+echo "MIP21_LIQUIDATION_ORACLE: ${MIP21_LIQUIDATION_ORACLE}"
 
 # technologic
 # https://www.youtube.com/watch?v=D8K90hX4PrE
