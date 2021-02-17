@@ -748,7 +748,12 @@ contract DssSpellTest is DSTest, DSMath {
 
         uint256 castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
+        (, , , uint48 tocPre) = oracle.ilks("RWA001-A");
+        assertTrue(tocPre == 0);
+        assertTrue(oracle.good("RWA001-A"));
         tellSpell.cast();
+        (, , , uint48 tocPost) = oracle.ilks("RWA001-A");
+        assertTrue(tocPost > 0);
         assertTrue(oracle.good("RWA001-A"));
         hevm.warp(block.timestamp + 600);
         assertTrue(!oracle.good("RWA001-A"));
