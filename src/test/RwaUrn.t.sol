@@ -490,4 +490,15 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         assertEq(dai.balanceOf(address(rec)), 600 ether);
     }
+
+    function testFail_oracle_bump_unknown_ilk() public {
+        // unknown ilk ecma
+        oracle.bump("ecma", wmul(ceiling + 200 ether, 1.1 ether));
+    }
+
+    function testFail_oracle_bump_in_remediation() public {
+        vat.file("acme", "line", 0);
+        oracle.tell("acme");
+        oracle.bump("acme", wmul(ceiling + 200 ether, 1.1 ether));
+    }
 }

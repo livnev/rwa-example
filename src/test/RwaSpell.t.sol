@@ -485,8 +485,8 @@ contract DssSpellTest is DSTest, DSMath {
         spell.cast();
     }
 
-    function vote() private {
-        if (chief.hat() != address(spell)) {
+    function vote(address _spell) private {
+        if (chief.hat() !=_spell) {
             hevm.store(
                 address(gov),
                 keccak256(abi.encode(address(this), uint256(1))),
@@ -495,38 +495,15 @@ contract DssSpellTest is DSTest, DSMath {
             gov.approve(address(chief), uint256(-1));
             chief.lock(sub(gov.balanceOf(address(this)), 1 ether));
 
-            assertTrue(!spell.done());
+            assertTrue(!DSSpellAbstract(_spell).done());
 
             address[] memory yays = new address[](1);
-            yays[0] = address(spell);
+            yays[0] = _spell;
 
             chief.vote(yays);
-            chief.lift(address(spell));
+            chief.lift(_spell);
         }
-        assertEq(chief.hat(), address(spell));
-    }
-
-    function voteTemp(address _spell) private {
-        if (chief.hat() != address(_spell)) {
-            hevm.store(
-                address(gov),
-                keccak256(abi.encode(address(this), uint256(1))),
-                bytes32(uint256(999999999999 ether))
-            );
-            gov.approve(address(chief), uint256(-1));
-            chief.lock(sub(gov.balanceOf(address(this)), 1 ether));
-
-            DSSpellAbstract tempSpell = DSSpellAbstract(_spell);
-
-            assertTrue(!tempSpell.done());
-
-            address[] memory yays = new address[](1);
-            yays[0] = address(_spell);
-
-            chief.vote(yays);
-            chief.lift(address(_spell));
-        }
-        assertEq(chief.hat(), address(_spell));
+        assertEq(chief.hat(), _spell);
     }
 
     function scheduleWaitAndCast() public {
@@ -709,17 +686,17 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     // function testFailWrongDay() public {
-    //     vote();
+    //     vote(address(spell));
     //     scheduleWaitAndCastFailDay();
     // }
 
     // function testFailTooEarly() public {
-    //     vote();
+    //     vote(address(spell));
     //     scheduleWaitAndCastFailEarly();
     // }
 
     // function testFailTooLate() public {
-    //     vote();
+    //     vote(address(spell));
     //     scheduleWaitAndCastFailLate();
     // }
 
@@ -736,7 +713,7 @@ contract DssSpellTest is DSTest, DSMath {
             assertEq(spell.expiration(), (SPELL_CREATED + 30 days));
         }
 
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
@@ -747,43 +724,48 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     function testChainlogValues() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
-        assertEq(chainlog.getAddress("RWA001"), 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F);
-        assertEq(chainlog.getAddress("MCD_JOIN_RWA001_A"), 0x2225c0034dBD4250ac431F899dEBf039A0384AEC);
-        assertEq(chainlog.getAddress("RWA001_A_URN"), 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf);
-        assertEq(chainlog.getAddress("RWA001_A_INPUT_CONDUIT"), 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b);
-        assertEq(chainlog.getAddress("RWA001_A_OUTPUT_CONDUIT"), 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD);
-        assertEq(chainlog.getAddress("MIP21_LIQUIDATION_ORACLE"), 0x856f61A4DbD981f477ea60203251bB748aa36e89);
+        assertEq(chainlog.getAddress("RWA001"), addr.addr("RWA001"));
+        assertEq(chainlog.getAddress("MCD_JOIN_RWA001_A"), addr.addr("MCD_JOIN_RWA001_A"));
+        assertEq(chainlog.getAddress("RWA001_A_URN"), addr.addr("RWA001_A_URN"));
+        assertEq(chainlog.getAddress("RWA001_A_INPUT_CONDUIT"), addr.addr("RWA001_A_INPUT_CONDUIT"));
+        assertEq(chainlog.getAddress("RWA001_A_OUTPUT_CONDUIT"), addr.addr("RWA001_A_OUTPUT_CONDUIT"));
+        assertEq(chainlog.getAddress("MIP21_LIQUIDATION_ORACLE"), addr.addr("MIP21_LIQUIDATION_ORACLE"));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
         tellSpell = new TellSpell();
-        voteTemp(address(tellSpell));
+        vote(address(tellSpell));
 
         tellSpell.schedule();
 
         uint256 castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
+        (, , , uint48 tocPre) = oracle.ilks("RWA001-A");
+        assertTrue(tocPre == 0);
+        assertTrue(oracle.good("RWA001-A"));
         tellSpell.cast();
+        (, , , uint48 tocPost) = oracle.ilks("RWA001-A");
+        assertTrue(tocPost > 0);
         assertTrue(oracle.good("RWA001-A"));
         hevm.warp(block.timestamp + 600);
         assertTrue(!oracle.good("RWA001-A"));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CURE_GOOD() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
         tellSpell = new TellSpell();
-        voteTemp(address(tellSpell));
+        vote(address(tellSpell));
 
         tellSpell.schedule();
 
@@ -795,7 +777,7 @@ contract DssSpellTest is DSTest, DSMath {
         assertTrue(!oracle.good("RWA001-A"));
 
         cureSpell = new CureSpell();
-        voteTemp(address(cureSpell));
+        vote(address(cureSpell));
 
         cureSpell.schedule();
         castTime = block.timestamp + pause.delay();
@@ -819,13 +801,13 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CULL() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
         assertTrue(oracle.good("RWA001-A"));
 
         tellSpell = new TellSpell();
-        voteTemp(address(tellSpell));
+        vote(address(tellSpell));
 
         tellSpell.schedule();
 
@@ -837,7 +819,7 @@ contract DssSpellTest is DSTest, DSMath {
         assertTrue(!oracle.good("RWA001-A"));
 
         cullSpell = new CullSpell();
-        voteTemp(address(cullSpell));
+        vote(address(cullSpell));
 
         cullSpell.schedule();
         castTime = block.timestamp + pause.delay();
@@ -849,7 +831,7 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     function testSpellIsCast_RWA001_OPERATOR_LOCK_DRAW_CONDUITS_WIPE_FREE() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
@@ -912,12 +894,12 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     function testSpellIsCast_RWA001_END() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
         endSpell = new EndSpell();
-        voteTemp(address(endSpell));
+        vote(address(endSpell));
 
         endSpell.schedule();
 

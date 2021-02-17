@@ -90,6 +90,8 @@ contract RwaLiquidationOracle {
 
     // --- valuation adjustment ---
     function bump(bytes32 ilk, uint256 val) external auth {
+        require(ilks[ilk].pip != address(0), "RwaOracle/unknown-ilk");
+        require(ilks[ilk].toc == 0, "RwaOracle/in-remediation");
         DSValue pip = DSValue(ilks[ilk].pip);
         // only cull can decrease
         require(val >= uint256(pip.read()), "RwaOracle/decreasing-val");
