@@ -687,12 +687,12 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_BUMP() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
         bumpSpell = new BumpSpell();
-        voteTemp(address(bumpSpell));
+        vote(address(bumpSpell));
 
         bumpSpell.schedule();
 
