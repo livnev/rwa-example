@@ -314,20 +314,20 @@ contract DssSpellTest is DSTest, DSMath {
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
         TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
         ILK: RWA001-A
-        RWA001: 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F
-        MCD_JOIN_RWA001_A: 0x2225c0034dBD4250ac431F899dEBf039A0384AEC
-        RWA001_A_URN: 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf
-        RWA001_A_CONDUIT_IN: 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b
-        RWA001_A_CONDUIT_OUT: 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD
-        MIP21_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
+        RWA001: 0x19e96A990B5298a8645d64fBe5e57ea87129898D
+        MCD_JOIN_RWA001_A: 0x63064555786427b444865A25d99Ee6666f3D04c8
+        RWA001_A_URN: 0x818f756233966034942e64844c5A2c3431E06B4b
+        RWA001_A_INPUT_CONDUIT: 0x40634d7A344f544ac1153a48E2820AC49698FA58
+        RWA001_A_OUTPUT_CONDUIT: 0xD21cC33895d9D2Aa52A1b21bB3Bed105bd15F6Fd
+        MIP21_LIQUIDATION_ORACLE: 0x9d6ad1C8785Cf94fcdBcf46ABD16F17FD86A4D35
     */
 
-    address constant RWA001_GEM                 = 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F;
-    address constant MCD_JOIN_RWA001_A          = 0x2225c0034dBD4250ac431F899dEBf039A0384AEC;
-    address constant RWA001_A_URN               = 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf;
-    address constant RWA001_A_INPUT_CONDUIT     = 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b;
-    address constant RWA001_A_OUTPUT_CONDUIT    = 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD;
-    address constant MIP21_LIQUIDATION_ORACLE   = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
+    address constant RWA001_GEM                 = 0x19e96A990B5298a8645d64fBe5e57ea87129898D;
+    address constant MCD_JOIN_RWA001_A          = 0x63064555786427b444865A25d99Ee6666f3D04c8;
+    address constant RWA001_A_URN               = 0x818f756233966034942e64844c5A2c3431E06B4b;
+    address constant RWA001_A_INPUT_CONDUIT     = 0x40634d7A344f544ac1153a48E2820AC49698FA58;
+    address constant RWA001_A_OUTPUT_CONDUIT    = 0xD21cC33895d9D2Aa52A1b21bB3Bed105bd15F6Fd;
+    address constant MIP21_LIQUIDATION_ORACLE   = 0x9d6ad1C8785Cf94fcdBcf46ABD16F17FD86A4D35;
 
     DSTokenAbstract constant rwagem             = DSTokenAbstract(RWA001_GEM);
     GemJoinAbstract constant rwajoin            = GemJoinAbstract(MCD_JOIN_RWA001_A);
@@ -787,12 +787,12 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_CURE() public {
-        vote();
+        vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
         cureSpell = new CureSpell();
-        voteTemp(address(cureSpell));
+        vote(address(cureSpell));
 
         cureSpell.schedule();
         uint256 castTime = block.timestamp + pause.delay();
