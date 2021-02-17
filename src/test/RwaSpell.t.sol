@@ -728,12 +728,12 @@ contract DssSpellTest is DSTest, DSMath {
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
-        assertEq(chainlog.getAddress("RWA001"), 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F);
-        assertEq(chainlog.getAddress("MCD_JOIN_RWA001_A"), 0x2225c0034dBD4250ac431F899dEBf039A0384AEC);
-        assertEq(chainlog.getAddress("RWA001_A_URN"), 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf);
-        assertEq(chainlog.getAddress("RWA001_A_INPUT_CONDUIT"), 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b);
-        assertEq(chainlog.getAddress("RWA001_A_OUTPUT_CONDUIT"), 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD);
-        assertEq(chainlog.getAddress("MIP21_LIQUIDATION_ORACLE"), 0x856f61A4DbD981f477ea60203251bB748aa36e89);
+        assertEq(chainlog.getAddress("RWA001"), addr.addr("RWA001"));
+        assertEq(chainlog.getAddress("MCD_JOIN_RWA001_A"), addr.addr("MCD_JOIN_RWA001_A"));
+        assertEq(chainlog.getAddress("RWA001_A_URN"), addr.addr("RWA001_A_URN"));
+        assertEq(chainlog.getAddress("RWA001_A_INPUT_CONDUIT"), addr.addr("RWA001_A_INPUT_CONDUIT"));
+        assertEq(chainlog.getAddress("RWA001_A_OUTPUT_CONDUIT"), addr.addr("RWA001_A_OUTPUT_CONDUIT"));
+        assertEq(chainlog.getAddress("MIP21_LIQUIDATION_ORACLE"), addr.addr("MIP21_LIQUIDATION_ORACLE"));
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL() public {
