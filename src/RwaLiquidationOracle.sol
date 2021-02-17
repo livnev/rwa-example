@@ -106,6 +106,8 @@ contract RwaLiquidationOracle {
     }
     // --- remediation ---
     function cure(bytes32 ilk) external auth {
+        require(ilks[ilk].pip != address(0), "RwaOracle/unknown-ilk");
+        require(ilks[ilk].toc > 0, "RwaOracle/not-in-remediation");
         ilks[ilk].toc = 0;
         emit Cure(ilk);
     }

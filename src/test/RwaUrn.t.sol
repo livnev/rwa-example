@@ -339,6 +339,42 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(dai.balanceOf(address(rec)), 100 ether);
     }
 
+    function testFail_oracle_cure_unknown_ilk() public {
+        // unknown ilk ecma
+        oracle.cure("ecma");
+    }
+
+    function testFail_oracle_cure_not_in_remediation() public {
+        oracle.cure("acme");
+    }
+
+    function testFail_oracle_cure_not_in_remediation_anymore() public {
+        usr.lock(1 ether);
+        assertTrue(usr.can_draw(10 ether));
+
+        // flash the liquidation beacon
+        vat.file("acme", "line", rad(0));
+        oracle.tell("acme");
+
+        // not able to borrow
+        assertTrue(! usr.can_draw(10 ether));
+
+        hevm.warp(block.timestamp + 1 weeks);
+
+        oracle.cure("acme");
+        vat.file("acme", "line", rad(ceiling));
+        assertTrue(oracle.good("acme"));
+
+        // able to borrow
+        assertEq(dai.balanceOf(address(rec)), 0);
+        usr.draw(100 ether);
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
+        outConduit.push();
+        assertEq(dai.balanceOf(address(rec)), 100 ether);
+        oracle.cure("acme");
+    }
+
     function test_oracle_cull() public {
         usr.lock(1 ether);
         // not at full utilisation

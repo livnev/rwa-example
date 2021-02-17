@@ -804,6 +804,20 @@ contract DssSpellTest is DSTest, DSMath {
         assertTrue(oracle.good("RWA001-A"));
     }
 
+    function testSpellIsCast_RWA001_INTEGRATION_CURE() public {
+        vote();
+        scheduleWaitAndCast();
+        assertTrue(spell.done());
+
+        cureSpell = new CureSpell();
+        voteTemp(address(cureSpell));
+
+        cureSpell.schedule();
+        uint256 castTime = block.timestamp + pause.delay();
+        hevm.warp(castTime);
+        cureSpell.cast();
+    }
+
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CULL() public {
         vote();
         scheduleWaitAndCast();
