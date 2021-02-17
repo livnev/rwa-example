@@ -486,7 +486,7 @@ contract DssSpellTest is DSTest, DSMath {
     }
 
     function vote(address _spell) private {
-        if (chief.hat() != address(_spell)) {
+        if (chief.hat() !=_spell) {
             hevm.store(
                 address(gov),
                 keccak256(abi.encode(address(this), uint256(1))),
@@ -498,12 +498,12 @@ contract DssSpellTest is DSTest, DSMath {
             assertTrue(!DSSpellAbstract(_spell).done());
 
             address[] memory yays = new address[](1);
-            yays[0] = address(_spell);
+            yays[0] = _spell;
 
             chief.vote(yays);
-            chief.lift(address(_spell));
+            chief.lift(_spell);
         }
-        assertEq(chief.hat(), address(_spell));
+        assertEq(chief.hat(), _spell);
     }
 
     function scheduleWaitAndCast() public {
