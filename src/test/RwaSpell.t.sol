@@ -284,59 +284,39 @@ contract DssSpellTest is DSTest, DSMath {
     Addresses addr  = new Addresses();
 
     // KOVAN ADDRESSES
-    DSPauseAbstract      pause = DSPauseAbstract(    addr.addr("MCD_PAUSE"));
-    address         pauseProxy =                     addr.addr("MCD_PAUSE_PROXY");
+    DSPauseAbstract              pause = DSPauseAbstract(     addr.addr("MCD_PAUSE"));
+    address                 pauseProxy =                      addr.addr("MCD_PAUSE_PROXY");
 
-    DSChiefAbstract      chief = DSChiefAbstract(    addr.addr("MCD_ADM"));
-    VatAbstract            vat = VatAbstract(        addr.addr("MCD_VAT"));
+    DSChiefAbstract              chief = DSChiefAbstract(     addr.addr("MCD_ADM"));
+    VatAbstract                    vat = VatAbstract(         addr.addr("MCD_VAT"));
 
-    CatAbstract            cat = CatAbstract(        addr.addr("MCD_CAT"));
-    JugAbstract            jug = JugAbstract(        addr.addr("MCD_JUG"));
+    CatAbstract                    cat = CatAbstract(         addr.addr("MCD_CAT"));
+    JugAbstract                    jug = JugAbstract(         addr.addr("MCD_JUG"));
 
-    VowAbstract            vow = VowAbstract(        addr.addr("MCD_VOW"));
-    PotAbstract            pot = PotAbstract(        addr.addr("MCD_POT"));
+    VowAbstract                    vow = VowAbstract(         addr.addr("MCD_VOW"));
+    PotAbstract                    pot = PotAbstract(         addr.addr("MCD_POT"));
 
-    SpotAbstract          spot = SpotAbstract(       addr.addr("MCD_SPOT"));
-    DSTokenAbstract        gov = DSTokenAbstract(    addr.addr("MCD_GOV"));
+    SpotAbstract                  spot = SpotAbstract(        addr.addr("MCD_SPOT"));
+    DSTokenAbstract                gov = DSTokenAbstract(     addr.addr("MCD_GOV"));
 
-    EndAbstract            end = EndAbstract(        addr.addr("MCD_END"));
-    IlkRegistryAbstract    reg = IlkRegistryAbstract(addr.addr("ILK_REGISTRY"));
+    EndAbstract                    end = EndAbstract(         addr.addr("MCD_END"));
+    IlkRegistryAbstract            reg = IlkRegistryAbstract( addr.addr("ILK_REGISTRY"));
 
-    OsmMomAbstract      osmMom = OsmMomAbstract(     addr.addr("OSM_MOM"));
-    FlipperMomAbstract flipMom = FlipperMomAbstract( addr.addr("FLIPPER_MOM"));
+    OsmMomAbstract              osmMom = OsmMomAbstract(      addr.addr("OSM_MOM"));
+    FlipperMomAbstract         flipMom = FlipperMomAbstract(  addr.addr("FLIPPER_MOM"));
 
-    DSTokenAbstract        dai = DSTokenAbstract(    addr.addr("MCD_DAI"));
+    DSTokenAbstract                dai = DSTokenAbstract(     addr.addr("MCD_DAI"));
 
-    ChainlogAbstract chainlog  = ChainlogAbstract(   addr.addr("CHANGELOG"));
+    ChainlogAbstract          chainlog = ChainlogAbstract(    addr.addr("CHANGELOG"));
 
-    /*
-        OPERATOR: 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e
-        TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
-        TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
-        ILK: RWA001-A
-        RWA001: 0x19e96A990B5298a8645d64fBe5e57ea87129898D
-        MCD_JOIN_RWA001_A: 0x63064555786427b444865A25d99Ee6666f3D04c8
-        RWA001_A_URN: 0x818f756233966034942e64844c5A2c3431E06B4b
-        RWA001_A_INPUT_CONDUIT: 0x40634d7A344f544ac1153a48E2820AC49698FA58
-        RWA001_A_OUTPUT_CONDUIT: 0xD21cC33895d9D2Aa52A1b21bB3Bed105bd15F6Fd
-        MIP21_LIQUIDATION_ORACLE: 0x9d6ad1C8785Cf94fcdBcf46ABD16F17FD86A4D35
-    */
+    DSTokenAbstract             rwagem = DSTokenAbstract(     addr.addr("RWA001"));
+    GemJoinAbstract            rwajoin = GemJoinAbstract(     addr.addr("MCD_JOIN_RWA001_A"));
+    RwaLiquidationLike          oracle = RwaLiquidationLike(  addr.addr("MIP21_LIQUIDATION_ORACLE"));
+    RwaUrnLike                  rwaurn = RwaUrnLike(          addr.addr("RWA001_A_URN"));
+    RwaInputConduitLike   rwaconduitin = RwaInputConduitLike( addr.addr("RWA001_A_INPUT_CONDUIT"));
+    RwaOutputConduitLike rwaconduitout = RwaOutputConduitLike(addr.addr("RWA001_A_OUTPUT_CONDUIT"));
 
-    address constant RWA001_GEM                 = 0x19e96A990B5298a8645d64fBe5e57ea87129898D;
-    address constant MCD_JOIN_RWA001_A          = 0x63064555786427b444865A25d99Ee6666f3D04c8;
-    address constant RWA001_A_URN               = 0x818f756233966034942e64844c5A2c3431E06B4b;
-    address constant RWA001_A_INPUT_CONDUIT     = 0x40634d7A344f544ac1153a48E2820AC49698FA58;
-    address constant RWA001_A_OUTPUT_CONDUIT    = 0xD21cC33895d9D2Aa52A1b21bB3Bed105bd15F6Fd;
-    address constant MIP21_LIQUIDATION_ORACLE   = 0x9d6ad1C8785Cf94fcdBcf46ABD16F17FD86A4D35;
-
-    DSTokenAbstract constant rwagem             = DSTokenAbstract(RWA001_GEM);
-    GemJoinAbstract constant rwajoin            = GemJoinAbstract(MCD_JOIN_RWA001_A);
-    RwaLiquidationLike constant oracle          = RwaLiquidationLike(MIP21_LIQUIDATION_ORACLE);
-    RwaUrnLike constant rwaurn                  = RwaUrnLike(RWA001_A_URN);
-    RwaInputConduitLike  constant rwaconduitin  = RwaInputConduitLike(RWA001_A_INPUT_CONDUIT);
-    RwaOutputConduitLike constant rwaconduitout = RwaOutputConduitLike(RWA001_A_OUTPUT_CONDUIT);
-
-    address    makerDeployer06                  = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
+    address    makerDeployer06 = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
     RwaSpell spell;
     TellSpell tellSpell;
@@ -786,7 +766,7 @@ contract DssSpellTest is DSTest, DSMath {
         assertTrue(oracle.good("RWA001-A"));
     }
 
-    function testSpellIsCast_RWA001_INTEGRATION_CURE() public {
+    function testFailSpellIsCast_RWA001_INTEGRATION_CURE() public {
         vote(address(spell));
         scheduleWaitAndCast();
         assertTrue(spell.done());
