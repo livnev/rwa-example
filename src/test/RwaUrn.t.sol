@@ -5,7 +5,7 @@ import "ds-token/token.sol";
 import "ds-math/math.sol";
 
 import {Vat} from "dss/vat.sol";
-
+import {Jug} from 'dss/jug.sol';
 import {Spotter} from "dss/spot.sol";
 
 import {DaiJoin} from 'dss/join.sol';
@@ -115,6 +115,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     RwaToken rwa;
 
     Vat vat;
+    Jug jug;
     address vow = address(123);
     Spotter spotter;
 
@@ -151,6 +152,10 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // standard Vat setup
         vat = new Vat();
 
+        jug = new Jug(address(vat));
+        jug.file("vow", address(vow));
+        vat.rely(address(jug));
+
         spotter = new Spotter(address(vat));
         vat.rely(address(spotter));
 
@@ -163,6 +168,11 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         vat.init("acme");
         vat.file("Line", 100 * rad(ceiling));
         vat.file("acme", "line", rad(ceiling));
+
+        jug.init("acme");
+        // $ bc -l <<< 'scale=27; e( l(1.08)/(60 * 60 * 24 * 365) )'
+        uint256 EIGHT_PCT = 1000000002440418608258400030;
+        jug.file("acme", "duty", EIGHT_PCT);
 
         oracle = new RwaLiquidationOracle(address(vat), vow);
         oracle.init(
@@ -279,6 +289,9 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.pick(address(rec));
         outConduit.push();
 
+        hevm.warp(now + 30 days);
+        jug.drip("acme");
+
         rec.transfer(address(inConduit), 100 ether);
         assertEq(dai.balanceOf(address(inConduit)), 100 ether);
 
@@ -288,7 +301,9 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.free(0.1 ether);
 
         (uint ink, uint art) = vat.urns("acme", address(urn));
-        assertEq(art, 300 ether);
+        // > 300 because of accumulated interest
+        assertTrue(art > 300 ether);
+        assertTrue(art < 301 ether);
         assertEq(ink, 0.9 ether);
         assertEq(dai.balanceOf(address(inConduit)), 0 ether);
     }

@@ -66,6 +66,21 @@ contract RwaUrn {
     event Draw(uint256 wad);
     event Wipe(uint256 wad);
 
+    // --- math ---
+    uint256 constant RAY = 10 ** 27;
+    function add(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require((z = x + y) >= x);
+    }
+    function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require((z = x - y) <= x);
+    }
+    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require(y == 0 || (z = x * y) / y == x);
+    }
+    function divup(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        z = add(x, sub(y, 1)) / y;
+    }
+
     // --- init ---
     constructor(
         address vat_, address gemJoin_, address daiJoin_, address outputConduit_
@@ -110,16 +125,20 @@ contract RwaUrn {
     // n.b. DAI can only go to the output conduit
     function draw(uint256 wad) external operator {
         require(outputConduit != address(0));
-        require(wad <= 2**255 - 1, "RwaUrn/overflow");
-        vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, int(wad));
+        (,uint256 rate,,,) = vat.ilks(gemJoin.ilk());
+        uint256 dart = divup(mul(RAY, wad), rate);
+        require(dart <= 2**255 - 1, "RwaUrn/overflow");
+        vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, int(dart));
         daiJoin.exit(outputConduit, wad);
         emit Draw(wad);
     }
     // n.b. anyone can wipe
     function wipe(uint256 wad) external {
-        require(wad <= 2**255, "RwaUrn/overflow");
         daiJoin.join(address(this), wad);
-        vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, -int(wad));
+        (,uint256 rate,,,) = vat.ilks(gemJoin.ilk());
+        uint256 dart = mul(RAY, wad) / rate;
+        require(dart <= 2 ** 255, "RwaUrn/overflow");
+        vat.frob(gemJoin.ilk(), address(this), address(this), address(this), 0, -int(dart));
         emit Wipe(wad);
     }
 }
