@@ -322,6 +322,7 @@ contract DssSpellTest is DSTest, DSMath {
         MIP21_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
     */
 
+    bytes32 constant ilk                        = "RWA001-A";
     address constant RWA001_GEM                 = 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F;
     address constant MCD_JOIN_RWA001_A          = 0x2225c0034dBD4250ac431F899dEBf039A0384AEC;
     address constant RWA001_A_URN               = 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf;
@@ -772,9 +773,9 @@ contract DssSpellTest is DSTest, DSMath {
         uint256 castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         tellSpell.cast();
-        assertTrue(oracle.good("RWA001-A"));
+        assertTrue(oracle.good(ilk));
         hevm.warp(block.timestamp + 600);
-        assertTrue(!oracle.good("RWA001-A"));
+        assertTrue(!oracle.good(ilk));
 
         cureSpell = new CureSpell();
         vote(address(cureSpell));
@@ -783,7 +784,9 @@ contract DssSpellTest is DSTest, DSMath {
         castTime = block.timestamp + pause.delay();
         hevm.warp(castTime);
         cureSpell.cast();
-        assertTrue(oracle.good("RWA001-A"));
+        assertTrue(oracle.good(ilk));
+        (,,, uint48 toc) = oracle.ilks(ilk);
+        assertEq(uint256(toc), 0);
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CULL() public {
@@ -843,8 +846,12 @@ contract DssSpellTest is DSTest, DSMath {
 
         rwagem.approve(address(rwaurn), 1 * WAD);
         rwaurn.lock(1 * WAD);
+        assertEq(dai.balanceOf(address(rwaconduitout)), 0);
         rwaurn.draw(1 * WAD);
 
+        (uint256 ink, uint256 art) = vat.urns(ilk, RWA001_A_URN);
+        assertEq(ink, 1 * WAD);
+        assertEq(art, 1 * WAD);
         assertEq(dai.balanceOf(address(rwaconduitout)), 1 * WAD);
 
         // wards
@@ -868,15 +875,29 @@ contract DssSpellTest is DSTest, DSMath {
 
         rwaconduitout.push();
 
+        assertEq(dai.balanceOf(address(rwaconduitout)), 0);
         assertEq(dai.balanceOf(address(this)), 1 * WAD);
 
+        assertEq(dai.balanceOf(address(rwaconduitin)), 0);
         dai.transfer(address(rwaconduitin), dai.balanceOf(address(this)));
+        assertEq(dai.balanceOf(address(rwaconduitin)), 1 * WAD);
         rwaconduitin.push();
 
         assertEq(dai.balanceOf(address(rwaurn)), 1 * WAD);
+        assertEq(dai.balanceOf(address(rwaconduitin)), 0);
 
+        (ink, art) = vat.urns(ilk, RWA001_A_URN);
+        assertEq(ink, 1 * WAD);
+        assertEq(art, 1 * WAD);
+        (ink,) = vat.urns(ilk, address(this));
+        assertEq(ink, 0);
         rwaurn.wipe(1 * WAD);
         rwaurn.free(1 * WAD);
+        (ink, art) = vat.urns(ilk, RWA001_A_URN);
+        assertEq(ink, 0);
+        assertEq(art, 0);
+        (ink,) = vat.urns(ilk, address(this));
+        assertEq(ink, 0);
     }
 
     function testSpellIsCast_RWA001_END() public {
