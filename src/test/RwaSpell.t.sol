@@ -54,6 +54,7 @@ interface RwaLiquidationLike {
     function deny(address) external;
     function ilks(bytes32) external returns (bytes32, address, uint48, uint48);
     function init(bytes32, uint256, string calldata, uint48) external;
+    function bump(bytes32, uint256) external;
     function tell(bytes32) external;
     function cure(bytes32) external;
     function cull(bytes32, address) external;
@@ -69,7 +70,7 @@ contract EndSpellAction {
     }
 }
 
-contract EndSpell {
+contract TestSpell {
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
     DSPauseAbstract public pause =
@@ -83,7 +84,9 @@ contract EndSpell {
 
     constructor() public {
         sig = abi.encodeWithSignature("execute()");
-        action = address(new EndSpellAction());
+    }
+
+    function setTag() internal {
         bytes32 _tag;
         address _action = action;
         assembly { _tag := extcodehash(_action) }
@@ -100,6 +103,13 @@ contract EndSpell {
         require(!done, "spell-already-cast");
         done = true;
         pause.exec(action, tag, sig, eta);
+    }
+}
+
+contract EndSpell is TestSpell {
+    constructor() public {
+        action = address(new EndSpellAction());
+        setTag();
     }
 }
 
@@ -115,37 +125,10 @@ contract CullSpellAction {
     }
 }
 
-contract CullSpell {
-    ChainlogAbstract constant CHANGELOG =
-        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-    DSPauseAbstract public pause =
-        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-    address         public action;
-    bytes32         public tag;
-    uint256         public eta;
-    bytes           public sig;
-    uint256         public expiration;
-    bool            public done;
-
+contract CullSpell is TestSpell {
     constructor() public {
-        sig = abi.encodeWithSignature("execute()");
         action = address(new CullSpellAction());
-        bytes32 _tag;
-        address _action = action;
-        assembly { _tag := extcodehash(_action) }
-        tag = _tag;
-    }
-
-    function schedule() public {
-        require(eta == 0, "This spell has already been scheduled");
-        eta = block.timestamp + DSPauseAbstract(pause).delay();
-        pause.plot(action, tag, sig, eta);
-    }
-
-    function cast() public {
-        require(!done, "spell-already-cast");
-        done = true;
-        pause.exec(action, tag, sig, eta);
+        setTag();
     }
 }
 
@@ -161,37 +144,10 @@ contract CureSpellAction {
     }
 }
 
-contract CureSpell {
-    ChainlogAbstract constant CHANGELOG =
-        ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-    DSPauseAbstract public pause =
-        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-    address         public action;
-    bytes32         public tag;
-    uint256         public eta;
-    bytes           public sig;
-    uint256         public expiration;
-    bool            public done;
-
+contract CureSpell is TestSpell {
     constructor() public {
-        sig = abi.encodeWithSignature("execute()");
         action = address(new CureSpellAction());
-        bytes32 _tag;
-        address _action = action;
-        assembly { _tag := extcodehash(_action) }
-        tag = _tag;
-    }
-
-    function schedule() public {
-        require(eta == 0, "This spell has already been scheduled");
-        eta = block.timestamp + DSPauseAbstract(pause).delay();
-        pause.plot(action, tag, sig, eta);
-    }
-
-    function cast() public {
-        require(!done, "spell-already-cast");
-        done = true;
-        pause.exec(action, tag, sig, eta);
+        setTag();
     }
 }
 
@@ -208,37 +164,30 @@ contract TellSpellAction {
     }
 }
 
-contract TellSpell {
+contract TellSpell is TestSpell {
+    constructor() public {
+        action = address(new TellSpellAction());
+        setTag();
+    }
+}
+
+contract BumpSpellAction {
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
-    DSPauseAbstract public pause =
-        DSPauseAbstract(CHANGELOG.getAddress("MCD_PAUSE"));
-    address         public action;
-    bytes32         public tag;
-    uint256         public eta;
-    bytes           public sig;
-    uint256         public expiration;
-    bool            public done;
+    bytes32 constant ilk = "RWA001-A";
+    uint256 constant WAD = 10 ** 18;
 
+    function execute() public {
+        RwaLiquidationLike(
+            CHANGELOG.getAddress("MIP21_LIQUIDATION_ORACLE")
+        ).bump(ilk, 1070 * WAD);
+    }
+}
+
+contract BumpSpell is TestSpell {
     constructor() public {
-        sig = abi.encodeWithSignature("execute()");
-        action = address(new TellSpellAction());
-        bytes32 _tag;
-        address _action = action;
-        assembly { _tag := extcodehash(_action) }
-        tag = _tag;
-    }
-
-    function schedule() public {
-        require(eta == 0, "This spell has already been scheduled");
-        eta = block.timestamp + DSPauseAbstract(pause).delay();
-        pause.plot(action, tag, sig, eta);
-    }
-
-    function cast() public {
-        require(!done, "spell-already-cast");
-        done = true;
-        pause.exec(action, tag, sig, eta);
+        action = address(new BumpSpellAction());
+        setTag();
     }
 }
 
@@ -284,62 +233,43 @@ contract DssSpellTest is DSTest, DSMath {
     Addresses addr  = new Addresses();
 
     // KOVAN ADDRESSES
-    DSPauseAbstract      pause = DSPauseAbstract(    addr.addr("MCD_PAUSE"));
-    address         pauseProxy =                     addr.addr("MCD_PAUSE_PROXY");
+    DSPauseAbstract              pause = DSPauseAbstract(     addr.addr("MCD_PAUSE"));
+    address                 pauseProxy =                      addr.addr("MCD_PAUSE_PROXY");
 
-    DSChiefAbstract      chief = DSChiefAbstract(    addr.addr("MCD_ADM"));
-    VatAbstract            vat = VatAbstract(        addr.addr("MCD_VAT"));
+    DSChiefAbstract              chief = DSChiefAbstract(     addr.addr("MCD_ADM"));
+    VatAbstract                    vat = VatAbstract(         addr.addr("MCD_VAT"));
 
-    CatAbstract            cat = CatAbstract(        addr.addr("MCD_CAT"));
-    JugAbstract            jug = JugAbstract(        addr.addr("MCD_JUG"));
+    CatAbstract                    cat = CatAbstract(         addr.addr("MCD_CAT"));
+    JugAbstract                    jug = JugAbstract(         addr.addr("MCD_JUG"));
 
-    VowAbstract            vow = VowAbstract(        addr.addr("MCD_VOW"));
-    PotAbstract            pot = PotAbstract(        addr.addr("MCD_POT"));
+    VowAbstract                    vow = VowAbstract(         addr.addr("MCD_VOW"));
+    PotAbstract                    pot = PotAbstract(         addr.addr("MCD_POT"));
 
-    SpotAbstract          spot = SpotAbstract(       addr.addr("MCD_SPOT"));
-    DSTokenAbstract        gov = DSTokenAbstract(    addr.addr("MCD_GOV"));
+    SpotAbstract                  spot = SpotAbstract(        addr.addr("MCD_SPOT"));
+    DSTokenAbstract                gov = DSTokenAbstract(     addr.addr("MCD_GOV"));
 
-    EndAbstract            end = EndAbstract(        addr.addr("MCD_END"));
-    IlkRegistryAbstract    reg = IlkRegistryAbstract(addr.addr("ILK_REGISTRY"));
+    EndAbstract                    end = EndAbstract(         addr.addr("MCD_END"));
+    IlkRegistryAbstract            reg = IlkRegistryAbstract( addr.addr("ILK_REGISTRY"));
 
-    OsmMomAbstract      osmMom = OsmMomAbstract(     addr.addr("OSM_MOM"));
-    FlipperMomAbstract flipMom = FlipperMomAbstract( addr.addr("FLIPPER_MOM"));
+    OsmMomAbstract              osmMom = OsmMomAbstract(      addr.addr("OSM_MOM"));
+    FlipperMomAbstract         flipMom = FlipperMomAbstract(  addr.addr("FLIPPER_MOM"));
 
-    DSTokenAbstract        dai = DSTokenAbstract(    addr.addr("MCD_DAI"));
+    DSTokenAbstract                dai = DSTokenAbstract(     addr.addr("MCD_DAI"));
 
-    ChainlogAbstract chainlog  = ChainlogAbstract(   addr.addr("CHANGELOG"));
-
-    /*
-        OPERATOR: 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e
-        TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
-        TRUST2: 0xDA0111100cb6080b43926253AB88bE719C60Be13
-        ILK: RWA001-A
-        RWA001: 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F
-        MCD_JOIN_RWA001_A: 0x2225c0034dBD4250ac431F899dEBf039A0384AEC
-        RWA001_A_URN: 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf
-        RWA001_A_CONDUIT_IN: 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b
-        RWA001_A_CONDUIT_OUT: 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD
-        MIP21_LIQUIDATION_ORACLE: 0x856f61A4DbD981f477ea60203251bB748aa36e89
-    */
+    ChainlogAbstract          chainlog = ChainlogAbstract(    addr.addr("CHANGELOG"));
 
     bytes32 constant ilk                        = "RWA001-A";
-    address constant RWA001_GEM                 = 0x402BEfAF2deea5f772A8aE901cFD8a26f8F36c2F;
-    address constant MCD_JOIN_RWA001_A          = 0x2225c0034dBD4250ac431F899dEBf039A0384AEC;
-    address constant RWA001_A_URN               = 0x1eF19d05DE248Eb7BdEF5c4C41C765745697dbaf;
-    address constant RWA001_A_INPUT_CONDUIT     = 0x4ba5eF5A3eE15cbd3552B04DC7dBF0bc77CA886b;
-    address constant RWA001_A_OUTPUT_CONDUIT    = 0x5823D8cDA9a9B8ea16Bd7D97ed63B702AC4b30FD;
-    address constant MIP21_LIQUIDATION_ORACLE   = 0x856f61A4DbD981f477ea60203251bB748aa36e89;
+    DSTokenAbstract             rwagem = DSTokenAbstract(     addr.addr("RWA001"));
+    GemJoinAbstract            rwajoin = GemJoinAbstract(     addr.addr("MCD_JOIN_RWA001_A"));
+    RwaLiquidationLike          oracle = RwaLiquidationLike(  addr.addr("MIP21_LIQUIDATION_ORACLE"));
+    RwaUrnLike                  rwaurn = RwaUrnLike(          addr.addr("RWA001_A_URN"));
+    RwaInputConduitLike   rwaconduitin = RwaInputConduitLike( addr.addr("RWA001_A_INPUT_CONDUIT"));
+    RwaOutputConduitLike rwaconduitout = RwaOutputConduitLike(addr.addr("RWA001_A_OUTPUT_CONDUIT"));
 
-    DSTokenAbstract constant rwagem             = DSTokenAbstract(RWA001_GEM);
-    GemJoinAbstract constant rwajoin            = GemJoinAbstract(MCD_JOIN_RWA001_A);
-    RwaLiquidationLike constant oracle          = RwaLiquidationLike(MIP21_LIQUIDATION_ORACLE);
-    RwaUrnLike constant rwaurn                  = RwaUrnLike(RWA001_A_URN);
-    RwaInputConduitLike  constant rwaconduitin  = RwaInputConduitLike(RWA001_A_INPUT_CONDUIT);
-    RwaOutputConduitLike constant rwaconduitout = RwaOutputConduitLike(RWA001_A_OUTPUT_CONDUIT);
-
-    address    makerDeployer06                  = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
+    address    makerDeployer06 = 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711;
 
     RwaSpell spell;
+    BumpSpell bumpSpell;
     TellSpell tellSpell;
     CureSpell cureSpell;
     CullSpell cullSpell;
@@ -737,6 +667,25 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(chainlog.getAddress("MIP21_LIQUIDATION_ORACLE"), addr.addr("MIP21_LIQUIDATION_ORACLE"));
     }
 
+    function testSpellIsCast_RWA001_INTEGRATION_BUMP() public {
+        vote(address(spell));
+        scheduleWaitAndCast();
+        assertTrue(spell.done());
+
+        bumpSpell = new BumpSpell();
+        vote(address(bumpSpell));
+
+        bumpSpell.schedule();
+
+        uint256 castTime = block.timestamp + pause.delay();
+        hevm.warp(castTime);
+        (, address pip, ,) = oracle.ilks("RWA001-A");
+
+        assertEq(DSValueAbstract(pip).read(), bytes32(1060 * WAD));
+        bumpSpell.cast();
+        assertEq(DSValueAbstract(pip).read(), bytes32(1070 * WAD));
+    }
+
     function testSpellIsCast_RWA001_INTEGRATION_TELL() public {
         vote(address(spell));
         scheduleWaitAndCast();
@@ -787,6 +736,20 @@ contract DssSpellTest is DSTest, DSMath {
         assertTrue(oracle.good(ilk));
         (,,, uint48 toc) = oracle.ilks(ilk);
         assertEq(uint256(toc), 0);
+    }
+
+    function testFailSpellIsCast_RWA001_INTEGRATION_CURE() public {
+        vote(address(spell));
+        scheduleWaitAndCast();
+        assertTrue(spell.done());
+
+        cureSpell = new CureSpell();
+        vote(address(cureSpell));
+
+        cureSpell.schedule();
+        uint256 castTime = block.timestamp + pause.delay();
+        hevm.warp(castTime);
+        cureSpell.cast();
     }
 
     function testSpellIsCast_RWA001_INTEGRATION_TELL_CULL() public {
@@ -849,7 +812,7 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(dai.balanceOf(address(rwaconduitout)), 0);
         rwaurn.draw(1 * WAD);
 
-        (uint256 ink, uint256 art) = vat.urns(ilk, RWA001_A_URN);
+        (uint256 ink, uint256 art) = vat.urns(ilk, address(rwaurn));
         assertEq(ink, 1 * WAD);
         assertEq(art, 1 * WAD);
         assertEq(dai.balanceOf(address(rwaconduitout)), 1 * WAD);
@@ -886,14 +849,14 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(dai.balanceOf(address(rwaurn)), 1 * WAD);
         assertEq(dai.balanceOf(address(rwaconduitin)), 0);
 
-        (ink, art) = vat.urns(ilk, RWA001_A_URN);
+        (ink, art) = vat.urns(ilk, address(rwaurn));
         assertEq(ink, 1 * WAD);
         assertEq(art, 1 * WAD);
         (ink,) = vat.urns(ilk, address(this));
         assertEq(ink, 0);
         rwaurn.wipe(1 * WAD);
         rwaurn.free(1 * WAD);
-        (ink, art) = vat.urns(ilk, RWA001_A_URN);
+        (ink, art) = vat.urns(ilk, address(rwaurn));
         assertEq(ink, 0);
         assertEq(art, 0);
         (ink,) = vat.urns(ilk, address(this));
