@@ -308,6 +308,34 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(dai.balanceOf(address(inConduit)), 0 ether);
     }
 
+    function test_partial_repay_fuzz(uint256 drawAmount, uint256 wipeAmount, uint256 drawTime, uint256 wipeTime) public {
+        // Convert to reasonable numbers
+        drawAmount = (drawAmount % 300 ether) + 100 ether;      // 100-400 ether
+        wipeAmount = wipeAmount % drawAmount;                   // 0-drawAmount ether
+        drawTime = drawTime % 15 days;                       // 0-15 days
+        wipeTime = wipeTime % 15 days;                       // 0-15 days
+
+        usr.lock(1 ether);
+
+        hevm.warp(now + drawTime/2);
+        jug.drip("acme");
+
+        usr.draw(drawAmount);
+
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
+        outConduit.push();
+
+        hevm.warp(now + wipeTime/2);
+        jug.drip("acme");
+
+        rec.transfer(address(inConduit), wipeAmount);
+        assertEq(dai.balanceOf(address(inConduit)), wipeAmount);
+
+        inConduit.push();
+        usr.wipe(wipeAmount);
+    }
+
     function test_full_repay() public {
         usr.lock(1 ether);
         usr.draw(400 ether);
