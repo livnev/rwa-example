@@ -338,7 +338,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
 
         usr.lock(1 ether);
 
-        hevm.warp(now + drawTime/2);
+        hevm.warp(now + drawTime);
         jug.drip("acme");
 
         usr.draw(drawAmount);
@@ -347,7 +347,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.pick(address(rec));
         outConduit.push();
 
-        hevm.warp(now + wipeTime/2);
+        hevm.warp(now + wipeTime);
         jug.drip("acme");
 
         rec.transfer(address(inConduit), wipeAmount);
