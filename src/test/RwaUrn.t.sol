@@ -357,6 +357,79 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         usr.wipe(wipeAmount);
     }
 
+    function test_repay_rounding_fuzz(uint256 drawAmt, uint256 drawTime, uint256 wipeTime) public {
+        // Convert to reasonable numbers
+        drawAmt = (drawAmt % 300 ether) + 99.99 ether; // 99.99-399.99 ether
+        drawTime = drawTime % 15 days;                       // 0-15 days
+        wipeTime = wipeTime % 15 days;                       // 0-15 days
+
+        (uint256 ink, uint256 art) = vat.urns("acme", address(urn));
+        assertEq(ink, 0);
+        assertEq(art, 0);
+
+        usr.lock(1 ether);
+
+        hevm.warp(now + drawTime);
+        jug.drip("acme");
+
+        usr.draw(drawAmt);
+
+        uint256 urnVatDust = vat.dai(address(urn));
+
+        // A draw should leave less than 2 RAY dust
+        assertTrue(urnVatDust < 2 * RAY);
+
+        (, uint256 rate,,,) = vat.ilks("acme");
+        (ink, art) = vat.urns("acme", address(urn));
+        assertEq(ink, 1 ether);
+        assertEq(art, (rad(drawAmt) + urnVatDust) / rate);
+
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
+        outConduit.push();
+
+        hevm.warp(now + wipeTime);
+        jug.drip("acme");
+
+        (, rate,,,) = vat.ilks("acme");
+
+        uint256 fullWipeAmt = art * rate / RAY;
+        if (fullWipeAmt * RAY < art * rate) {
+            fullWipeAmt += 1;
+        }
+
+        // Forcing extra DAI balance to pay accumulated fee
+        hevm.store(
+            address(dai),
+            keccak256(abi.encode(address(rec), uint256(3))),
+            bytes32(uint256(fullWipeAmt))
+        );
+        hevm.store(
+            address(dai),
+            bytes32(uint256(2)),
+            bytes32(uint256(fullWipeAmt))
+        );
+        hevm.store(
+            address(vat),
+            keccak256(abi.encode(address(daiJoin), uint256(5))),
+            bytes32(uint256(fullWipeAmt * RAY))
+        );
+        //
+
+        rec.transfer(address(inConduit), fullWipeAmt);
+        assertEq(dai.balanceOf(address(inConduit)), fullWipeAmt);
+
+        inConduit.push();
+        usr.wipe(fullWipeAmt);
+
+        (, art) = vat.urns("acme", address(urn));
+        assertEq(art, 0);
+
+        uint256 newUrnVatDust = vat.dai(address(urn));
+        // A wipe should leave less than 1 RAY dust
+        assertTrue(newUrnVatDust - urnVatDust < RAY);
+    }
+
     function test_full_repay() public {
         usr.lock(1 ether);
         usr.draw(400 ether);
