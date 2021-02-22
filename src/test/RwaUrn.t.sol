@@ -18,6 +18,7 @@ import {RwaUrn} from "../RwaUrn.sol";
 
 interface Hevm {
     function warp(uint256) external;
+    function store(address,bytes32,bytes32) external;
 }
 
 contract RwaUltimateRecipient {
