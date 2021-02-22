@@ -193,7 +193,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // deploy output dai conduit
         outConduit = new RwaOutputConduit(address(gov), address(dai));
         // deploy urn
-        urn = new RwaUrn(address(vat), address(gemJoin), address(daiJoin), address(outConduit));
+        urn = new RwaUrn(address(vat), address(jug), address(gemJoin), address(daiJoin), address(outConduit));
         gemJoin.rely(address(urn));
         // deploy input dai conduit, pointed permanently at the urn
         inConduit = new RwaInputConduit(address(gov), address(dai), address(urn));
@@ -211,6 +211,13 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         outConduit.kiss(address(rec));
 
         usr.approve(rwa, address(urn), uint(-1));
+    }
+
+    function test_file() public {
+        urn.file("outputConduit", address(123));
+        assertEq(urn.outputConduit(), address(123));
+        urn.file("jug", address(456));
+        assertEq(address(urn.jug()), address(456));
     }
 
     function test_unpick_and_pick_new_rec() public {
@@ -249,11 +256,26 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         assertEq(dai.balanceOf(address(outConduit)), 0);
         assertEq(dai.balanceOf(address(rec)), 0);
 
+        hevm.warp(now + 10 days); // Let rate be > 1
+
+        assertEq(vat.dai(address(urn)), 0);
+
+        (uint256 ink, uint256 art) = vat.urns("acme", address(urn));
+        assertEq(ink, 0);
+        assertEq(art, 0);
+
         usr.lock(1 ether);
-        usr.draw(400 ether);
+        usr.draw(399 ether); // with 400 will fail due vat ceiling (rounding)
+
+        assertEq(vat.dai(address(urn)), 463899466724981907732616508); // dust from divup
+
+        (, uint256 rate,,,) = vat.ilks("acme");
+        (ink, art) = vat.urns("acme", address(urn));
+        assertEq(ink, 1 ether);
+        assertEq(art, (rad(399 ether) + 463899466724981907732616508) / rate);
 
         // check the amount went to the output conduit
-        assertEq(dai.balanceOf(address(outConduit)), 400 ether);
+        assertEq(dai.balanceOf(address(outConduit)), 399 ether);
         assertEq(dai.balanceOf(address(rec)), 0);
 
         // usr nominates ultimate recipient
@@ -261,7 +283,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         // push the amount to the receiver
         outConduit.push();
         assertEq(dai.balanceOf(address(outConduit)), 0);
-        assertEq(dai.balanceOf(address(rec)), 400 ether);
+        assertEq(dai.balanceOf(address(rec)), 399 ether);
     }
 
     function test_draw_exceeds_debt_ceiling() public {
@@ -290,7 +312,6 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         outConduit.push();
 
         hevm.warp(now + 30 days);
-        jug.drip("acme");
 
         rec.transfer(address(inConduit), 100 ether);
         assertEq(dai.balanceOf(address(inConduit)), 100 ether);
@@ -444,6 +465,7 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
     function test_oracle_cull_two_urns() public {
         RwaUrn urn2 = new RwaUrn(
             address(vat),
+            address(jug),
             address(gemJoin),
             address(daiJoin),
             address(outConduit)

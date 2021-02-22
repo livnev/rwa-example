@@ -10,6 +10,8 @@ set -e
 # shellcheck disable=SC1091
 source ./scripts/build-env-addresses.sh "$1" > /dev/null 2>&1
 
+export ETH_GAS=6000000
+
 SYMBOL="RWA001"
 LETTER="A"
 ILK="${SYMBOL}-${LETTER}"
@@ -42,7 +44,7 @@ RWA_JOIN=$(dapp create AuthGemJoin "${MCD_VAT}" "${ILK_ENCODED}" "${RWA_TOKEN}")
 seth send "${RWA_JOIN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 
 # urn it
-RWA_URN=$(dapp create RwaUrn "${MCD_VAT}" "${RWA_JOIN}" "${MCD_JOIN_DAI}" "${RWA_OUTPUT_CONDUIT}")
+RWA_URN=$(dapp create RwaUrn "${MCD_VAT}" "${MCD_JUG}" "${RWA_JOIN}" "${MCD_JOIN_DAI}" "${RWA_OUTPUT_CONDUIT}")
 seth send "${RWA_URN}" 'rely(address)' "${MCD_PAUSE_PROXY}"
 seth send "${RWA_URN}" 'deny(address)' "${ETH_FROM}"
 

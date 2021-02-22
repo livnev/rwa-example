@@ -258,7 +258,7 @@ contract DssSpellTest is DSTest, DSMath {
 
     ChainlogAbstract          chainlog = ChainlogAbstract(    addr.addr("CHANGELOG"));
 
-    bytes32 constant ilk                        = "RWA001-A";
+    bytes32 constant ilk               = "RWA001-A";
     DSTokenAbstract             rwagem = DSTokenAbstract(     addr.addr("RWA001"));
     GemJoinAbstract            rwajoin = GemJoinAbstract(     addr.addr("MCD_JOIN_RWA001_A"));
     RwaLiquidationLike          oracle = RwaLiquidationLike(  addr.addr("MIP21_LIQUIDATION_ORACLE"));
@@ -550,36 +550,36 @@ contract DssSpellTest is DSTest, DSMath {
         uint256 sumlines;
         bytes32[] memory ilks = reg.list();
         for(uint256 i = 0; i < ilks.length; i++) {
-            bytes32 ilk = ilks[i];
-            (uint256 duty,)  = jug.ilks(ilk);
+            bytes32 ilk_ = ilks[i];
+            (uint256 duty,)  = jug.ilks(ilk_);
 
-            assertEq(duty, rates.rates(values.collaterals[ilk].pct));
+            assertEq(duty, rates.rates(values.collaterals[ilk_].pct));
             // make sure duty is less than 1000% APR
             // bc -l <<< 'scale=27; e( l(10.00)/(60 * 60 * 24 * 365) )'
             // 1000000073014496989316680335
             assertTrue(duty >= RAY && duty < 1000000073014496989316680335);  // gt 0 and lt 1000%
-            assertTrue(diffCalc(expectedRate(values.collaterals[ilk].pct), yearlyYield(rates.rates(values.collaterals[ilk].pct))) <= TOLERANCE);
-            assertTrue(values.collaterals[ilk].pct < THOUSAND * THOUSAND);   // check value lt 1000%
+            assertTrue(diffCalc(expectedRate(values.collaterals[ilk_].pct), yearlyYield(rates.rates(values.collaterals[ilk_].pct))) <= TOLERANCE);
+            assertTrue(values.collaterals[ilk_].pct < THOUSAND * THOUSAND);   // check value lt 1000%
             {
             (,,, uint256 line, uint256 dust) = vat.ilks(ilk);
             // Convert whole Dai units to expected RAD
-            uint256 normalizedTestLine = values.collaterals[ilk].line * RAD;
-            sumlines += values.collaterals[ilk].line;
+            uint256 normalizedTestLine = values.collaterals[ilk_].line * RAD;
+            sumlines += values.collaterals[ilk_].line;
             assertEq(line, normalizedTestLine);
             assertTrue((line >= RAD && line < BILLION * RAD) || line == 0);  // eq 0 or gt eq 1 RAD and lt 1B
-            uint256 normalizedTestDust = values.collaterals[ilk].dust * RAD;
+            uint256 normalizedTestDust = values.collaterals[ilk_].dust * RAD;
             assertEq(dust, normalizedTestDust);
             assertTrue((dust >= RAD && dust < 10 * THOUSAND * RAD) || dust == 0); // eq 0 or gt eq 1 and lt 10k
             }
             {
             (, uint256 chop, uint256 dunk) = cat.ilks(ilk);
             // Convert BP to system expected value
-            uint256 normalizedTestChop = (values.collaterals[ilk].chop * 10**14) + WAD;
+            uint256 normalizedTestChop = (values.collaterals[ilk_].chop * 10**14) + WAD;
             assertEq(chop, normalizedTestChop);
             // make sure chop is less than 100%
             assertTrue(chop >= WAD && chop < 2 * WAD);   // penalty gt eq 0% and lt 100%
             // Convert whole Dai units to expected RAD
-            uint256 normalizedTestDunk = values.collaterals[ilk].dunk * RAD;
+            uint256 normalizedTestDunk = values.collaterals[ilk_].dunk * RAD;
             assertEq(dunk, normalizedTestDunk);
             // put back in after LIQ-1.2
             assertTrue(dunk >= RAD && dunk < MILLION * RAD);
@@ -587,7 +587,7 @@ contract DssSpellTest is DSTest, DSMath {
             {
             (,uint256 mat) = spot.ilks(ilk);
             // Convert BP to system expected value
-            uint256 normalizedTestMat = (values.collaterals[ilk].mat * 10**23);
+            uint256 normalizedTestMat = (values.collaterals[ilk_].mat * 10**23);
             assertEq(mat, normalizedTestMat);
             assertTrue(mat >= RAY && mat < 10 * RAY);    // cr eq 100% and lt 1000%
             }
@@ -595,15 +595,15 @@ contract DssSpellTest is DSTest, DSMath {
             (address flipper,,) = cat.ilks(ilk);
             FlipAbstract flip = FlipAbstract(flipper);
             // Convert BP to system expected value
-            uint256 normalizedTestBeg = (values.collaterals[ilk].beg + 10000)  * 10**14;
+            uint256 normalizedTestBeg = (values.collaterals[ilk_].beg + 10000)  * 10**14;
             assertEq(uint256(flip.beg()), normalizedTestBeg);
             assertTrue(flip.beg() >= WAD && flip.beg() < 105 * WAD / 100);  // gt eq 0% and lt 5%
-            assertEq(uint256(flip.ttl()), values.collaterals[ilk].ttl);
+            assertEq(uint256(flip.ttl()), values.collaterals[ilk_].ttl);
             assertTrue(flip.ttl() >= 600 && flip.ttl() < 10 hours);         // gt eq 10 minutes and lt 10 hours
-            assertEq(uint256(flip.tau()), values.collaterals[ilk].tau);
+            assertEq(uint256(flip.tau()), values.collaterals[ilk_].tau);
             assertTrue(flip.tau() >= 600 && flip.tau() <= 3 days);          // gt eq 10 minutes and lt eq 3 days
 
-            assertEq(flip.wards(address(cat)), values.collaterals[ilk].liquidations);  // liquidations == 1 => on
+            assertEq(flip.wards(address(cat)), values.collaterals[ilk_].liquidations);  // liquidations == 1 => on
             assertEq(flip.wards(address(makerDeployer06)), 0); // Check deployer denied
             assertEq(flip.wards(address(pauseProxy)), 1); // Check pause_proxy ward
             }
@@ -787,6 +787,8 @@ contract DssSpellTest is DSTest, DSMath {
         scheduleWaitAndCast();
         assertTrue(spell.done());
 
+        hevm.warp(now + 10 days); // Let rate be > 1
+
         hevm.store(
             address(rwagem),
             keccak256(abi.encode(address(this), uint256(0))),
@@ -812,9 +814,13 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(dai.balanceOf(address(rwaconduitout)), 0);
         rwaurn.draw(1 * WAD);
 
+        (, uint256 rate,,,) = vat.ilks("RWA001-A");
+
+        uint256 dustInVat = vat.dai(address(rwaurn));
+
         (uint256 ink, uint256 art) = vat.urns(ilk, address(rwaurn));
         assertEq(ink, 1 * WAD);
-        assertEq(art, 1 * WAD);
+        assertEq(art, (1 * RAD + dustInVat) / rate);
         assertEq(dai.balanceOf(address(rwaconduitout)), 1 * WAD);
 
         // wards
@@ -841,20 +847,35 @@ contract DssSpellTest is DSTest, DSMath {
         assertEq(dai.balanceOf(address(rwaconduitout)), 0);
         assertEq(dai.balanceOf(address(this)), 1 * WAD);
 
-        assertEq(dai.balanceOf(address(rwaconduitin)), 0);
-        dai.transfer(address(rwaconduitin), dai.balanceOf(address(this)));
-        assertEq(dai.balanceOf(address(rwaconduitin)), 1 * WAD);
-        rwaconduitin.push();
-
-        assertEq(dai.balanceOf(address(rwaurn)), 1 * WAD);
-        assertEq(dai.balanceOf(address(rwaconduitin)), 0);
+        hevm.warp(now + 10 days);
 
         (ink, art) = vat.urns(ilk, address(rwaurn));
         assertEq(ink, 1 * WAD);
-        assertEq(art, 1 * WAD);
+        assertEq(art, (1 * RAD + dustInVat) / rate);
         (ink,) = vat.urns(ilk, address(this));
         assertEq(ink, 0);
-        rwaurn.wipe(1 * WAD);
+
+        jug.drip("RWA001-A");
+
+        (, rate,,,) = vat.ilks("RWA001-A");
+
+        uint256 daiToPay = (art * rate - dustInVat) / RAY + 1; // extra wei rounding
+
+        hevm.store(
+            address(dai),
+            keccak256(abi.encode(address(this), uint256(2))),
+            bytes32(uint256(daiToPay))
+        ); // Forcing extra DAI balance to pay accumulated fee
+
+        assertEq(dai.balanceOf(address(rwaconduitin)), 0);
+        dai.transfer(address(rwaconduitin), daiToPay);
+        assertEq(dai.balanceOf(address(rwaconduitin)), daiToPay);
+        rwaconduitin.push();
+
+        assertEq(dai.balanceOf(address(rwaurn)), daiToPay);
+        assertEq(dai.balanceOf(address(rwaconduitin)), 0);
+
+        rwaurn.wipe(daiToPay);
         rwaurn.free(1 * WAD);
         (ink, art) = vat.urns(ilk, address(rwaurn));
         assertEq(ink, 0);
