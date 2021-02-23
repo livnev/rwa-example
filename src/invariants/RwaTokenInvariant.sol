@@ -7,8 +7,8 @@ contract MockHolder {
     // --- Math ---
     uint256 constant WAD = 10 ** 18;
 
-    constructor (address rwa, address retriever) public {
-        RwaToken(rwa).approve(retriever, 1 * WAD);
+    constructor (address rwa, address usr) public {
+        RwaToken(rwa).approve(usr, 1 * WAD);
     }
 }
 
@@ -34,22 +34,22 @@ contract RwaTokenInvariant {
     }
 
     /// @dev Test that supply and balance hold on transfer.
-    function transfer(uint ethAmount) public {
+    function transfer(uint wad) public {
         uint thisBalance = rwa.balanceOf(address(this));
         uint holderBalance = rwa.balanceOf(holder);
-        rwa.transfer(holder, ethAmount);
-        assert(rwa.balanceOf(address(this)) == sub(thisBalance, ethAmount));
-        assert(rwa.balanceOf(holder) == add(holderBalance, ethAmount));
+        rwa.transfer(holder, wad);
+        assert(rwa.balanceOf(address(this)) == sub(thisBalance, wad));
+        assert(rwa.balanceOf(holder) == add(holderBalance, wad));
         assert(address(rwa).balance == address(rwa).balance);
     }
 
     /// @dev Test that supply and balance hold on transferFrom.
-    function transferFrom(uint ethAmount) public {
+    function transferFrom(uint wad) public {
         uint thisBalance = rwa.balanceOf(address(this));
         uint holderBalance = rwa.balanceOf(holder);
-        rwa.transferFrom(holder, address(this), ethAmount);
-        assert(rwa.balanceOf(address(this)) == add(thisBalance, ethAmount));
-        assert(rwa.balanceOf(holder) == sub(holderBalance, ethAmount));
+        rwa.transferFrom(holder, address(this), wad);
+        assert(rwa.balanceOf(address(this)) == add(thisBalance, wad));
+        assert(rwa.balanceOf(holder) == sub(holderBalance, wad));
         assert(address(rwa).balance == address(rwa).balance);
     }
 }
