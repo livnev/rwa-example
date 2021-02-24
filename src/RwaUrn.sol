@@ -154,7 +154,7 @@ contract RwaUrn {
     // If Dai is sitting here after ES that should be sent back
     function quit() external {
         require(outputConduit != address(0));
-        require(vat.live() == 0, "RwaUrn/overflow");
+        require(vat.live() == 0, "RwaUrn/vat-still-live");
         DSTokenAbstract dai = DSTokenAbstract(daiJoin.dai());
         uint256 wad = dai.balanceOf(address(this));
         dai.transfer(outputConduit, wad);
