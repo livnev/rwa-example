@@ -57,6 +57,7 @@ contract RwaLiquidationOracle {
     event Deny(address indexed usr);
     event File(bytes32 indexed what, address data);
     event Init(bytes32 indexed ilk, uint256 val, string doc, uint48 tau);
+    event Bump(bytes32 indexed ilk, uint256 val);
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
     event Cull(bytes32 indexed ilk, address indexed urn);
@@ -66,6 +67,7 @@ contract RwaLiquidationOracle {
         vow = vow_;
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
+        emit File("vow", vow_);
     }
 
     // --- administration ---
@@ -98,6 +100,7 @@ contract RwaLiquidationOracle {
         // only cull can decrease
         require(val >= uint256(pip.read()), "RwaOracle/decreasing-val");
         pip.poke(bytes32(val));
+        emit Bump(ilk, val);
     }
     // --- liquidation ---
     function tell(bytes32 ilk) external auth {
