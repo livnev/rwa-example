@@ -67,6 +67,7 @@ contract RwaUrn {
     event Free(address indexed usr, uint256 wad);
     event Draw(address indexed usr, uint256 wad);
     event Wipe(address indexed usr, uint256 wad);
+    event Quit(address indexed usr, uint256 wad);
 
     // --- math ---
     uint256 constant RAY = 10 ** 27;
@@ -150,5 +151,15 @@ contract RwaUrn {
         require(dart <= 2 ** 255, "RwaUrn/overflow");
         vat.frob(ilk, address(this), address(this), address(this), 0, -int(dart));
         emit Wipe(msg.sender, wad);
+    }
+
+    // If Dai is sitting here after ES that should be sent back
+    function quit() external {
+        require(outputConduit != address(0));
+        require(vat.live() == 0, "RwaUrn/vat-still-live");
+        DSTokenAbstract dai = DSTokenAbstract(daiJoin.dai());
+        uint256 wad = dai.balanceOf(address(this));
+        dai.transfer(outputConduit, wad);
+        emit Quit(msg.sender, wad);
     }
 }
