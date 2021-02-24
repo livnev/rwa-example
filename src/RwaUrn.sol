@@ -67,6 +67,7 @@ contract RwaUrn {
     event Free(uint256 wad);
     event Draw(uint256 wad);
     event Wipe(uint256 wad);
+    event Quit(address indexed usr, uint256 wad);
 
     // --- math ---
     uint256 constant RAY = 10 ** 27;
@@ -155,6 +156,8 @@ contract RwaUrn {
         require(outputConduit != address(0));
         require(vat.live() == 0, "RwaUrn/overflow");
         DSTokenAbstract dai = DSTokenAbstract(daiJoin.dai());
-        dai.transfer(outputConduit, dai.balanceOf(address(this)));
+        uint256 wad = dai.balanceOf(address(this));
+        dai.transfer(outputConduit, wad);
+        emit Quit(msg.sender, wad);
     }
 }
