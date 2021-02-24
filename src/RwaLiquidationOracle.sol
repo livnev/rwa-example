@@ -57,6 +57,7 @@ contract RwaLiquidationOracle {
     event Deny(address indexed usr);
     event File(bytes32 indexed what, address data);
     event Init(bytes32 indexed ilk, uint256 val, string doc, uint48 tau);
+    event Bump(bytes32 indexed ilk, uint256 val);
     event Tell(bytes32 indexed ilk);
     event Cure(bytes32 indexed ilk);
     event Cull(bytes32 indexed ilk, address indexed urn);
@@ -66,6 +67,7 @@ contract RwaLiquidationOracle {
         vow = vow_;
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
+        emit File("vow", vow_);
     }
 
     // --- administration ---
@@ -84,18 +86,21 @@ contract RwaLiquidationOracle {
             DSValue pip = new DSValue();
             ilks[ilk].pip = address(pip);
             pip.poke(bytes32(val));
+        } else {
+            val = uint256(DSValue(ilks[ilk].pip).read());
         }
         emit Init(ilk, val, doc, tau);
     }
 
     // --- valuation adjustment ---
     function bump(bytes32 ilk, uint256 val) external auth {
-        require(ilks[ilk].pip != address(0), "RwaOracle/unknown-ilk");
-        require(ilks[ilk].toc == 0, "RwaOracle/in-remediation");
         DSValue pip = DSValue(ilks[ilk].pip);
+        require(address(pip) != address(0), "RwaOracle/unknown-ilk");
+        require(ilks[ilk].toc == 0, "RwaOracle/in-remediation");
         // only cull can decrease
         require(val >= uint256(pip.read()), "RwaOracle/decreasing-val");
-        DSValue(ilks[ilk].pip).poke(bytes32(val));
+        pip.poke(bytes32(val));
+        emit Bump(ilk, val);
     }
     // --- liquidation ---
     function tell(bytes32 ilk) external auth {
