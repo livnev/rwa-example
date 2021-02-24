@@ -149,4 +149,12 @@ contract RwaUrn {
         vat.frob(ilk, address(this), address(this), address(this), 0, -int(dart));
         emit Wipe(wad);
     }
+
+    // If Dai is sitting here after ES that should be sent back
+    function quit() external {
+        require(outputConduit != address(0));
+        require(vat.live() == 0, "RwaUrn/overflow");
+        DSTokenAbstract dai = DSTokenAbstract(daiJoin.dai());
+        dai.transfer(outputConduit, dai.balanceOf(address(this)));
+    }
 }

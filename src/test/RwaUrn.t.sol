@@ -640,4 +640,37 @@ contract RwaExampleTest is DSTest, DSMath, TryPusher {
         oracle.tell("acme");
         oracle.bump("acme", wmul(ceiling + 200 ether, 1.1 ether));
     }
+
+    function test_quit() public {
+        usr.lock(1 ether);
+        usr.draw(400 ether);
+
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
+        outConduit.push();
+
+        rec.transfer(address(inConduit), 400 ether);
+
+        inConduit.push();
+        vat.cage();
+        assertEq(dai.balanceOf(address(urn)), 400 ether);
+        assertEq(dai.balanceOf(address(outConduit)), 0);
+        urn.quit();
+        assertEq(dai.balanceOf(address(urn)), 0);
+        assertEq(dai.balanceOf(address(outConduit)), 400 ether);
+    }
+
+    function testFail_quit() public {
+        usr.lock(1 ether);
+        usr.draw(400 ether);
+
+        // usr nominates ultimate recipient
+        usr.pick(address(rec));
+        outConduit.push();
+
+        rec.transfer(address(inConduit), 400 ether);
+
+        inConduit.push();
+        urn.quit();
+    }
 }
