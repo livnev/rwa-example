@@ -66,6 +66,7 @@ contract RwaLiquidationOracle {
         vow = vow_;
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
+        emit File("vow", vow_);
     }
 
     // --- administration ---

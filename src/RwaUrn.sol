@@ -63,10 +63,10 @@ contract RwaUrn {
     event Hope(address indexed usr);
     event Nope(address indexed usr);
     event File(bytes32 indexed what, address data);
-    event Lock(uint256 wad);
-    event Free(uint256 wad);
-    event Draw(uint256 wad);
-    event Wipe(uint256 wad);
+    event Lock(address indexed usr, uint256 wad);
+    event Free(address indexed usr, uint256 wad);
+    event Draw(address indexed usr, uint256 wad);
+    event Wipe(address indexed usr, uint256 wad);
 
     // --- math ---
     uint256 constant RAY = 10 ** 27;
@@ -98,6 +98,8 @@ contract RwaUrn {
         DaiAbstract(daiJoin.dai()).approve(address(daiJoin), uint256(-1));
         VatAbstract(vat_).hope(address(daiJoin));
         emit Rely(msg.sender);
+        emit File("outputConduit", outputConduit_);
+        emit File("jug", jug_);
     }
 
     // --- administration ---
@@ -116,7 +118,7 @@ contract RwaUrn {
         // join with address this
         gemJoin.join(address(this), wad);
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), int(wad), 0);
-        emit Lock(wad);
+        emit Lock(msg.sender, wad);
     }
     // n.b. that the operator takes the gem
     // and might not be the same operator who brought the gem
@@ -124,7 +126,7 @@ contract RwaUrn {
         require(wad <= 2**255, "RwaUrn/overflow");
         vat.frob(gemJoin.ilk(), address(this), address(this), address(this), -int(wad), 0);
         gemJoin.exit(msg.sender, wad);
-        emit Free(wad);
+        emit Free(msg.sender, wad);
     }
     // n.b. DAI can only go to the output conduit
     function draw(uint256 wad) external operator {
@@ -136,7 +138,7 @@ contract RwaUrn {
         require(dart <= 2**255 - 1, "RwaUrn/overflow");
         vat.frob(ilk, address(this), address(this), address(this), 0, int(dart));
         daiJoin.exit(outputConduit, wad);
-        emit Draw(wad);
+        emit Draw(msg.sender, wad);
     }
     // n.b. anyone can wipe
     function wipe(uint256 wad) external {
@@ -147,6 +149,6 @@ contract RwaUrn {
         uint256 dart = mul(RAY, wad) / rate;
         require(dart <= 2 ** 255, "RwaUrn/overflow");
         vat.frob(ilk, address(this), address(this), address(this), 0, -int(dart));
-        emit Wipe(wad);
+        emit Wipe(msg.sender, wad);
     }
 }
