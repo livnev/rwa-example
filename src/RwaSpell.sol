@@ -47,15 +47,6 @@ contract SpellAction {
     ChainlogAbstract constant CHANGELOG =
         ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
-    // core address helpers
-    function vat()  internal view returns (address) { return getChangelogAddress("MCD_VAT"); }
-    function jug()  internal view returns (address) { return getChangelogAddress("MCD_JUG"); }
-    function spot() internal view returns (address) { return getChangelogAddress("MCD_SPOT"); }
-
-    function getChangelogAddress(bytes32 key) internal view returns (address) {
-        return ChainlogAbstract(CHANGELOG).getAddress(key);
-    }
-
     /*
         OPERATOR: 0xD23beB204328D7337e3d2Fb9F150501fDC633B0e
         TRUST1: 0xda0fab060e6cc7b1C0AA105d29Bd50D71f036711
@@ -96,6 +87,10 @@ contract SpellAction {
     string constant DOC = "QmdmAUTU3sd9VkdfTZNQM6krc9jsKgF2pz7W1qvvfJo1xk";
 
     function execute() external {
+        address MCD_VAT  = ChainlogAbstract(CHANGELOG).getAddress("MCD_VAT");
+        address MCD_JUG  = ChainlogAbstract(CHANGELOG).getAddress("MCD_JUG");
+        address MCD_SPOT = ChainlogAbstract(CHANGELOG).getAddress("MCD_SPOT");
+
         // RWA001-A collateral deploy
 
         // Set ilk bytes32 variable
@@ -114,7 +109,7 @@ contract SpellAction {
         CHANGELOG.setVersion("1.2.8");
 
         // Sanity checks
-        require(GemJoinAbstract(MCD_JOIN_RWA001_A).vat() == vat(), "join-vat-not-match");
+        require(GemJoinAbstract(MCD_JOIN_RWA001_A).vat() == MCD_VAT, "join-vat-not-match");
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).ilk() == ilk, "join-ilk-not-match");
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).gem() == RWA001_GEM, "join-gem-not-match");
         require(GemJoinAbstract(MCD_JOIN_RWA001_A).dec() == DSTokenAbstract(RWA001_GEM).decimals(), "join-dec-not-match");
@@ -129,34 +124,34 @@ contract SpellAction {
         CHANGELOG.setAddress("PIP_RWA001", pip);
 
         // Set price feed for RWA001
-        SpotAbstract(spot()).file(ilk, "pip", pip);
+        SpotAbstract(MCD_SPOT).file(ilk, "pip", pip);
 
         // Init RWA-001 in Vat
-        VatAbstract(vat()).init(ilk);
+        VatAbstract(MCD_VAT).init(ilk);
         // Init RWA-001 in Jug
-        JugAbstract(jug()).init(ilk);
+        JugAbstract(MCD_JUG).init(ilk);
 
         // Allow RWA-001 Join to modify Vat registry
-        VatAbstract(vat()).rely(MCD_JOIN_RWA001_A);
+        VatAbstract(MCD_VAT).rely(MCD_JOIN_RWA001_A);
 
         // Allow RwaLiquidationOracle to modify Vat registry
-        VatAbstract(vat()).rely(MIP21_LIQUIDATION_ORACLE);
+        VatAbstract(MCD_VAT).rely(MIP21_LIQUIDATION_ORACLE);
 
         // 1000 debt ceiling
-        VatAbstract(vat()).file(ilk, "line", RWA001_A_INITIAL_DC);
-        VatAbstract(vat()).file("Line", VatAbstract(vat()).Line() + RWA001_A_INITIAL_DC);
+        VatAbstract(MCD_VAT).file(ilk, "line", RWA001_A_INITIAL_DC);
+        VatAbstract(MCD_VAT).file("Line", VatAbstract(MCD_VAT).Line() + RWA001_A_INITIAL_DC);
 
         // No dust
-        // VatAbstract(vat()).file(ilk, "dust", 0)
+        // VatAbstract(MCD_VAT).file(ilk, "dust", 0)
 
         // 3% stability fee
-        JugAbstract(jug()).file(ilk, "duty", THREE_PCT_RATE);
+        JugAbstract(MCD_JUG).file(ilk, "duty", THREE_PCT_RATE);
 
         // collateralization ratio 100%
-        SpotAbstract(spot()).file(ilk, "mat", RAY);
+        SpotAbstract(MCD_SPOT).file(ilk, "mat", RAY);
 
         // poke the spotter to pull in a price
-        SpotAbstract(spot()).poke(ilk);
+        SpotAbstract(MCD_SPOT).poke(ilk);
 
         // give the urn permissions on the join adapter
         GemJoinAbstract(MCD_JOIN_RWA001_A).rely(RWA001_A_URN);
